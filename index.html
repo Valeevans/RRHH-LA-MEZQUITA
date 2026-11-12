@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LA MEZQUITA — RRHH</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --prim:#3E6B45; --prim-osc:#2F5233; --prim-clara:#A9C9A4;
+    --crema:#E2EFDA; --gris-100:#F5F7F3; --gris-200:#E6EAE2; --gris-400:#AEB6A8; --gris-700:#4F5A4C;
+    --texto:#1F2A1F;
+    --verde:#2E7D5B; --verde-bg:#DDF0E6;
+    --rojo:#B03A2E; --rojo-bg:#FBE4E1;
+    --amarillo:#B9770E; --amarillo-bg:#FCF0D8;
+    --sombra:0 1px 3px rgba(31,42,31,.08),0 1px 2px rgba(31,42,31,.06);
+    --sombra-lg:0 8px 24px rgba(31,42,31,.16);
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background:var(--gris-100); color:var(--texto);}
+  #app{display:flex; min-height:100vh;}
+  .sidebar{width:230px; flex-shrink:0; background:linear-gradient(180deg,#1E3522,var(--prim-osc) 55%,var(--prim)); color:#fff; display:flex; flex-direction:column; padding:22px 0; position:sticky; top:0; height:100vh;}
+  .brand{padding:0 20px 18px; border-bottom:1px solid rgba(255,255,255,.18);}
+  .brand-logo{display:flex; align-items:center; gap:10px;}
+  .brand-mark{width:38px; height:38px; border:1.5px solid #fff; display:flex; align-items:center; justify-content:center; font-family:Georgia,serif; font-size:22px; font-weight:700;}
+  .brand-name{font-size:16px; font-weight:800; letter-spacing:1.5px;}
+  .brand-tag{font-size:8.5px; letter-spacing:2.5px; opacity:.8;}
+  .brand-sub{font-size:11px; opacity:.85; margin-top:10px;}
+  .nav{padding:16px 10px; flex:1; overflow-y:auto;}
+  .nav-item{display:flex; align-items:center; gap:9px; padding:10px 12px; border-radius:8px; cursor:pointer; font-size:13.5px; font-weight:600; opacity:.88; margin-bottom:3px;}
+  .nav-item:hover{background:rgba(255,255,255,.10); opacity:1;}
+  .nav-item.active{background:rgba(255,255,255,.20); opacity:1;}
+  .nav-count{margin-left:auto; background:var(--rojo); color:#fff; border-radius:10px; font-size:10.5px; padding:1px 7px; display:none;}
+  .sidebar-foot{padding:12px 20px; font-size:10.5px; opacity:.8; border-top:1px solid rgba(255,255,255,.18);}
+  .main{flex:1; padding:26px 32px; max-width:1500px; min-width:0;}
+  .topbar{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;}
+  .page-title{font-size:21px; font-weight:800; color:var(--prim-osc);}
+  .page-sub{font-size:12.5px; color:var(--gris-700); margin-top:2px;}
+  select,input,textarea{font-family:inherit; font-size:13px; padding:7px 9px; border:1px solid var(--gris-400); border-radius:7px; background:#fff; color:var(--texto);}
+  select:focus,input:focus,textarea:focus{outline:2px solid var(--prim-clara); outline-offset:1px;}
+  .btn{border:none; border-radius:8px; padding:9px 15px; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;}
+  .btn-primary{background:var(--prim); color:#fff;}
+  .btn-primary:hover{background:var(--prim-osc);}
+  .btn-ghost{background:var(--gris-200); color:var(--texto);}
+  .btn-ghost:hover{background:var(--gris-400); color:#fff;}
+  .btn-sm{padding:4px 8px; font-size:11.5px; border-radius:6px;}
+  .btn-danger{background:var(--rojo-bg); color:var(--rojo);}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; margin-bottom:22px;}
+  .card{background:#fff; border-radius:var(--radius); padding:16px 18px; box-shadow:var(--sombra); border-top:3px solid var(--prim);}
+  .card.alerta{border-top-color:var(--rojo);} .card.aviso{border-top-color:var(--amarillo);} .card.neutro{border-top-color:var(--gris-400);}
+  .card-label{font-size:11px; color:var(--gris-700); font-weight:700; text-transform:uppercase; letter-spacing:.3px;}
+  .card-value{font-size:27px; font-weight:800; margin-top:5px; color:var(--prim-osc);}
+  .card.alerta .card-value{color:var(--rojo);} .card.aviso .card-value{color:var(--amarillo);}
+  .card-sub{font-size:11.5px; color:var(--gris-700); margin-top:3px;}
+  .panel{background:#fff; border-radius:var(--radius); box-shadow:var(--sombra); padding:20px; margin-bottom:20px;}
+  .panel-title{font-size:14.5px; font-weight:800; margin-bottom:12px; color:var(--prim-osc);}
+  .chart-grid{display:grid; grid-template-columns:1.3fr 1fr; gap:16px;}
+  @media (max-width:900px){.chart-grid{grid-template-columns:1fr;} .sidebar{display:none;} .main{padding:18px;}}
+  .chart-box{position:relative; height:250px;}
+  .filters{display:flex; gap:9px; flex-wrap:wrap; align-items:center;}
+  .filters label{font-size:11.5px; font-weight:700; color:var(--gris-700); margin-right:3px;}
+  .toolbar{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;}
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  thead th{text-align:left; padding:9px 10px; background:var(--crema); color:var(--prim-osc); font-weight:700; font-size:11px; text-transform:uppercase; position:sticky; top:0; z-index:1;}
+  tbody td{padding:9px 10px; border-bottom:1px solid var(--gris-200); vertical-align:top;}
+  tbody tr:hover{background:var(--gris-100);}
+  .table-wrap{overflow-x:auto; max-height:600px; overflow-y:auto; border-radius:8px; border:1px solid var(--gris-200);}
+  .badge{display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; white-space:nowrap;}
+  .badge-verde{background:var(--verde-bg); color:var(--verde);}
+  .badge-rojo{background:var(--rojo-bg); color:var(--rojo);}
+  .badge-amarillo{background:var(--amarillo-bg); color:var(--amarillo);}
+  .badge-gris{background:var(--gris-200); color:var(--gris-700);}
+  .empty{text-align:center; padding:44px 20px; color:var(--gris-700);}
+  .empty-icon{font-size:30px; margin-bottom:6px;}
+  .overlay{position:fixed; inset:0; background:rgba(31,42,31,.45); display:none; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .overlay.open{display:flex;}
+  .modal{background:#fff; border-radius:14px; width:100%; max-width:640px; max-height:90vh; overflow-y:auto; box-shadow:var(--sombra-lg);}
+  .modal.wide{max-width:860px;}
+  .modal-head{padding:18px 22px; border-bottom:1px solid var(--gris-200); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:#fff; z-index:2;}
+  .modal-head h3{margin:0; font-size:15.5px; color:var(--prim-osc);}
+  .modal-close{cursor:pointer; font-size:20px; color:var(--gris-700); background:none; border:none;}
+  .modal-body{padding:20px 22px;}
+  .form-row{display:grid; grid-template-columns:1fr 1fr; gap:13px; margin-bottom:13px;}
+  .form-row.three{grid-template-columns:1fr 1fr 1fr;}
+  .form-row.full{grid-template-columns:1fr;}
+  .form-group label{display:block; font-size:11.5px; font-weight:700; color:var(--gris-700); margin-bottom:4px;}
+  .form-group select,.form-group input,.form-group textarea{width:100%;}
+  .modal-foot{padding:14px 22px; border-top:1px solid var(--gris-200); display:flex; justify-content:flex-end; gap:9px; position:sticky; bottom:0; background:#fff;}
+  .toast{position:fixed; bottom:22px; right:22px; background:var(--texto); color:#fff; padding:11px 16px; border-radius:8px; font-size:13px; box-shadow:var(--sombra-lg); display:none; z-index:100; max-width:420px;}
+  .toast.show{display:block;}
+  .status-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px;}
+  .status-ok{background:#7BD89F;} .status-err{background:#FF8A7A;} .status-wait{background:#F5C76B;}
+  .hint{font-size:11.5px; color:var(--gris-700); line-height:1.5;}
+  .banner{background:var(--crema); border:1px solid var(--prim-clara); border-radius:10px; padding:14px 18px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+  .banner.demo{background:var(--amarillo-bg); border-color:#E8C27A;}
+  .banner p{margin:0; font-size:12.5px; color:var(--gris-700); max-width:760px;}
+  .cap-row{cursor:pointer;}
+  .cap-detail{background:var(--gris-100);}
+  .cap-detail td{padding:0;}
+  .cap-detail-inner{padding:14px 18px;}
+  textarea{resize:vertical;}
+  .muted{color:var(--gris-700); font-size:11.5px;}
+  .checklist{max-height:320px; overflow-y:auto; border:1px solid var(--gris-200); border-radius:8px; padding:6px 10px;}
+  .checklist .grp{font-size:11.5px; font-weight:800; color:var(--prim-osc); margin:10px 0 4px; display:flex; justify-content:space-between;}
+  .checklist label{display:flex; align-items:center; gap:8px; font-size:12.5px; padding:3px 0; font-weight:400; color:var(--texto);}
+  .checklist input{width:auto;}
+  .pre{white-space:pre-line;}
+  .perfil-view h4{margin:14px 0 4px; font-size:12px; color:var(--prim-osc); text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <div class="brand-mark">M</div>
+        <div><div class="brand-name">LA MEZQUITA</div><div class="brand-tag">RESTAURANTE &amp; BAR</div></div>
+      </div>
+      <div class="brand-sub">RRHH — Personal, Perfiles, Carnets y Capacitaciones</div>
+    </div>
+    <div class="nav">
+      <div class="nav-item active" data-tab="resumen">&#9673; Resumen</div>
+      <div class="nav-item" data-tab="nomina">&#128100; Nómina</div>
+      <div class="nav-item" data-tab="perfiles">&#128203; Perfiles de puesto</div>
+      <div class="nav-item" data-tab="carnets">&#129706; Carnets manipulación <span class="nav-count" id="navCarnetCount"></span></div>
+      <div class="nav-item" data-tab="capacitaciones">&#127891; Capacitaciones</div>
+      <div class="nav-item" data-tab="desempeno">&#11088; Desempeño</div>
+      <div class="nav-item" data-tab="ficha">&#128193; Ficha de empleado</div>
+    </div>
+    <div class="sidebar-foot"><span id="connStatus"><span class="status-dot status-wait"></span>Conectando…</span><div style="margin-top:6px;">P-RH-01 · SGC ISO 9001 + BPM</div></div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="page-title" id="pageTitle">Resumen</div>
+        <div class="page-sub" id="pageSub">Estado general de RRHH</div>
+      </div>
+      <div style="display:flex; gap:9px; align-items:center;">
+        <label style="font-size:11.5px; font-weight:700; color:var(--gris-700);">Año</label>
+        <select id="yearSelect"></select>
+        <button class="btn btn-ghost btn-sm" id="btnNuevoAnio">+ Año</button>
+        <button class="btn btn-ghost btn-sm" id="btnRecargar" title="Volver a leer todo desde Google Sheets">&#8635; Recargar</button>
+      </div>
+    </div>
+
+    <div class="banner demo" id="demoBanner" style="display:none;">
+      <p><b>Modo demo.</b> El tablero todavía no está conectado a Google Sheets: estás viendo los datos cargados de fábrica y los cambios no se guardan. Pegá la URL del Apps Script en <code>SHEET_API_URL</code> para trabajar en serio.</p>
+    </div>
+    <div class="banner" id="importBanner" style="display:none;">
+      <p><b>La planilla está vacía.</b> Tengo listos los datos de La Mezquita: 39 personas del registro de carnets (con su vencimiento), 11 perfiles de puesto (matriz + organigrama) y el plan de capacitación 2026 del P-RH-01. Un clic los sube a la Google Sheet.</p>
+      <button class="btn btn-primary" id="btnImportar">Importar datos iniciales</button>
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="tab-content" id="tab-resumen">
+      <div class="cards" id="resumenCards"></div>
+      <div class="chart-grid">
+        <div class="panel">
+          <div class="panel-title">Carnets de manipulación — estado por sector</div>
+          <div class="chart-box"><canvas id="chartCarnetSector"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Estado de carnets del personal activo</div>
+          <div class="chart-box"><canvas id="chartCarnet"></canvas></div>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="panel">
+          <div class="panel-title">Eficacia por objetivo de capacitación (año seleccionado)</div>
+          <div class="chart-box"><canvas id="chartTipo"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Estado de inducción del personal activo</div>
+          <div class="chart-box"><canvas id="chartInduccion"></canvas></div>
+        </div>
+      </div>
+      <div class="panel" id="alertasPanel">
+        <div class="panel-title">Alertas</div>
+        <div id="alertasList"></div>
+      </div>
+    </div>
+
+    <!-- NOMINA -->
+    <div class="tab-content" id="tab-nomina" style="display:none;">
+      <div class="panel">
+        <div class="toolbar">
+          <div class="filters">
+            <label>Sector</label><select id="filterSectorPersonal"></select>
+            <label>Estado</label>
+            <select id="filterEstadoPersonal"><option value="">Todos</option><option selected>Activo</option><option>Baja</option></select>
+            <label>Inducción</label>
+            <select id="filterInduccion"><option value="">Todas</option><option>Pendiente</option><option>Vencida</option><option>Completa</option><option>No aplica</option></select>
+            <input type="text" id="searchPersonal" placeholder="Buscar nombre…" style="width:170px;">
+          </div>
+          <button class="btn btn-primary" id="btnAltaPersonal">+ Alta de empleado</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nombre</th><th>Puesto</th><th>Sector</th><th>Estado</th><th>Ingreso</th><th>Inducción</th><th>Carnet</th><th></th></tr></thead>
+            <tbody id="personalTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="personalEmpty" style="display:none;"><div class="empty-icon">&#128100;</div>Sin registros de personal para este filtro.</div>
+      </div>
+    </div>
+
+    <!-- PERFILES -->
+    <div class="tab-content" id="tab-perfiles" style="display:none;">
+      <div class="panel">
+        <div class="toolbar">
+          <div class="filters">
+            <label>Estado</label>
+            <select id="filterEstadoPerfil"><option value="">Todos</option><option selected>Activo</option><option>Baja</option></select>
+          </div>
+          <button class="btn btn-primary" id="btnNuevoPerfil">+ Nuevo perfil de puesto</button>
+        </div>
+        <div class="hint" style="margin-bottom:10px;">Anexo I del P-RH-01. Los ocupantes se calculan solos a partir de la Nómina. Los perfiles marcados <span class="badge badge-amarillo">A completar</span> todavía no tienen misión o funciones cargadas.</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Puesto</th><th>Sector</th><th>Reporta a</th><th>Ocupantes</th><th>Carnet</th><th>Estado</th><th></th></tr></thead>
+            <tbody id="perfilesTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="perfilesEmpty" style="display:none;"><div class="empty-icon">&#128203;</div>Sin perfiles cargados todavía.</div>
+      </div>
+    </div>
+
+    <!-- CARNETS -->
+    <div class="tab-content" id="tab-carnets" style="display:none;">
+      <div class="cards" id="carnetCards"></div>
+      <div class="panel">
+        <div class="toolbar">
+          <div class="filters">
+            <label>Sector</label><select id="filterSectorCarnet"></select>
+            <label>Estado</label>
+            <select id="filterEstadoCarnet"><option value="">Todos</option><option>Vencido</option><option>Por vencer</option><option>Vigente</option><option>Sin dato</option></select>
+          </div>
+          <div class="hint">"Por vencer" = vence dentro de los próximos <b id="umbralTxt">60</b> días (calculado contra la fecha de hoy).</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Apellido y nombre</th><th>Puesto</th><th>Sector</th><th>Requisito</th><th>Vencimiento</th><th>Días para vencer</th><th>Estado</th><th>Obs.</th><th></th></tr></thead>
+            <tbody id="carnetTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="carnetEmpty" style="display:none;"><div class="empty-icon">&#129706;</div>Sin registros para este filtro.</div>
+      </div>
+    </div>
+
+    <!-- CAPACITACIONES -->
+    <div class="tab-content" id="tab-capacitaciones" style="display:none;">
+      <div class="panel">
+        <div class="toolbar">
+          <div class="filters">
+            <label>Objetivo</label>
+            <select id="filterObjetivo"><option value="">Todos</option></select>
+            <label>Estado</label>
+            <select id="filterEstadoCap"><option value="">Todos</option><option>Programada</option><option>Realizada</option><option>Reprogramada</option></select>
+          </div>
+          <button class="btn btn-primary" id="btnNuevaCap">+ Nueva capacitación</button>
+        </div>
+        <div class="hint" style="margin-bottom:10px;">Hacé clic en una capacitación para ver / cargar los asistentes y la eficacia individual. Con <b>"+ Cargar asistentes en lote"</b> tildás a todo un sector de una vez.</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Actividad</th><th>Dirigida a</th><th>Objetivo</th><th>Responsable</th><th>Estado</th><th>Asistentes</th><th></th></tr></thead>
+            <tbody id="capTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="capEmpty" style="display:none;"><div class="empty-icon">&#127891;</div>Sin capacitaciones cargadas para este año.</div>
+      </div>
+    </div>
+
+    <!-- DESEMPEÑO -->
+    <div class="tab-content" id="tab-desempeno" style="display:none;">
+      <div class="cards" id="evalCards"></div>
+      <div class="panel">
+        <div class="toolbar">
+          <div class="filters">
+            <label>Período</label>
+            <select id="filterPeriodo"><option value="">Ambos semestres</option><option>1° semestre</option><option>2° semestre</option></select>
+            <label>Sector</label><select id="filterSectorEval"></select>
+          </div>
+          <button class="btn btn-primary" id="btnNuevaEval">+ Nueva evaluación</button>
+        </div>
+        <div class="hint" style="margin-bottom:10px;">Evaluación <b>semestral</b> a cargo del encargado de cada sector (P-RH-01, etapa 5). 20 criterios en escala 1 a 5. Resultado: ≥4,5 Apto destacado · ≥3,5 Apto · ≥2,5 Con observaciones · &lt;2,5 No apto.</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Personal</th><th>Puesto</th><th>Período</th><th>Puntaje</th><th>Promedio</th><th>Resultado</th><th>Evaluador</th><th>Fecha</th><th></th></tr></thead>
+            <tbody id="evalTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="evalEmpty" style="display:none;"><div class="empty-icon">&#11088;</div>Sin evaluaciones de desempeño cargadas para este año / período.</div>
+      </div>
+    </div>
+
+    <!-- FICHA -->
+    <div class="tab-content" id="tab-ficha" style="display:none;">
+      <div class="panel">
+        <div class="filters" style="margin-bottom:14px;">
+          <label>Empleado</label>
+          <select id="fichaSelect" style="min-width:280px;"></select>
+        </div>
+        <div id="fichaContent"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERSONAL -->
+<div class="overlay" id="personalOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="personalModalTitle">Alta de empleado</h3><button class="modal-close" data-close="personalOverlay">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pId">
+      <div class="form-row">
+        <div class="form-group"><label>Apellido y nombre</label><input type="text" id="pNombre"></div>
+        <div class="form-group"><label>Puesto</label><select id="pPuesto"></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Fecha de ingreso</label><input type="date" id="pFechaIngreso"></div>
+        <div class="form-group"><label>Plazo de evaluación de inducción</label>
+          <select id="pPlazo"><option value="90">90 días</option><option value="180">180 días</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Vencimiento carnet de manipulación</label><input type="date" id="pVtoCarnet"></div>
+        <div class="form-group"><label>Observaciones carnet</label><input type="text" id="pObsCarnet"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="personalOverlay">Cancelar</button><button class="btn btn-primary" id="pGuardar">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL CARNET -->
+<div class="overlay" id="carnetOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="carnetModalTitle">Actualizar carnet</h3><button class="modal-close" data-close="carnetOverlay">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="cId">
+      <div class="form-row">
+        <div class="form-group"><label>Nuevo vencimiento</label><input type="date" id="cVto"></div>
+        <div class="form-group"><label>Observaciones</label><input type="text" id="cObs" placeholder="Ej: turno de renovación pedido"></div>
+      </div>
+      <div class="hint">Al renovar, cargá la fecha de vencimiento del carnet nuevo. Queda registrado en el historial.</div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="carnetOverlay">Cancelar</button><button class="btn btn-primary" id="cGuardar">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL INDUCCION -->
+<div class="overlay" id="indOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="indModalTitle">Resultado de inducción</h3><button class="modal-close" data-close="indOverlay">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="indId">
+      <div class="form-row">
+        <div class="form-group"><label>Resultado</label><select id="indResultado"><option>Eficaz</option><option>No eficaz</option></select></div>
+        <div class="form-group"><label>Fecha de evaluación</label><input type="date" id="indFecha"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="indOverlay">Cancelar</button><button class="btn btn-primary" id="indGuardar">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL PERFIL -->
+<div class="overlay" id="perfilOverlay">
+  <div class="modal wide">
+    <div class="modal-head"><h3 id="perfilModalTitle">Nuevo perfil de puesto</h3><button class="modal-close" data-close="perfilOverlay">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="pfId">
+      <div class="form-row three">
+        <div class="form-group"><label>Puesto</label><input type="text" id="pfPuesto"></div>
+        <div class="form-group"><label>Sector / Área</label><input type="text" id="pfSector" list="sectoresList"></div>
+        <div class="form-group"><label>Reporta a</label><input type="text" id="pfReporta"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Carnet de manipulación</label><select id="pfCarnet"><option>Obligatorio</option><option>Preferente</option><option>No requerido</option><option>A definir</option></select></div>
+        <div class="form-group"><label>Ocupantes actuales</label><input type="text" id="pfOcupantes" readonly></div>
+      </div>
+      <div class="form-row full"><div class="form-group"><label>Misión del puesto</label><textarea id="pfMision" rows="2"></textarea></div></div>
+      <div class="form-row full"><div class="form-group"><label>Funciones principales</label><textarea id="pfFunciones" rows="5"></textarea></div></div>
+      <div class="form-row">
+        <div class="form-group"><label>Equipos / herramientas que utiliza</label><textarea id="pfEquipos" rows="4"></textarea></div>
+        <div class="form-group"><label>Documentos y registros que maneja</label><textarea id="pfDocumentos" rows="4"></textarea></div>
+      </div>
+      <div class="form-row full"><div class="form-group"><label>Indicadores de desempeño</label><textarea id="pfIndicadores" rows="3"></textarea></div></div>
+      <div class="form-row full"><div class="form-group"><label>Competencias necesarias (experiencia, habilidades, requisitos de ingreso)</label><textarea id="pfCompetencias" rows="4"></textarea></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="perfilOverlay">Cancelar</button><button class="btn btn-primary" id="pfGuardar">Guardar</button></div>
+  </div>
+</div>
+<datalist id="sectoresList"></datalist>
+
+<!-- MODAL CAPACITACION -->
+<div class="overlay" id="capOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="capModalTitle">Nueva capacitación</h3><button class="modal-close" data-close="capOverlay">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="capId">
+      <div class="form-row full"><div class="form-group"><label>Actividad de capacitación</label><input type="text" id="capActividad"></div></div>
+      <div class="form-row">
+        <div class="form-group"><label>Objetivo</label>
+          <select id="capObjetivo">
+            <option>Nuevos conocimientos</option>
+            <option>Concientización</option>
+            <option>Actualizar conocimientos existentes</option>
+            <option>Actualizar y/o reforzar conocimientos del SGC</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Dirigida a (sector)</label><input type="text" id="capSector" list="sectoresList" placeholder="Todos / Barra / Salón…"></div>
+      </div>
+      <div class="form-row three">
+        <div class="form-group"><label>Responsable</label><input type="text" id="capResponsable"></div>
+        <div class="form-group"><label>Mes programado</label>
+          <select id="capMes">
+            <option value="">A definir</option>
+            <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
+            <option>Julio</option><option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Estado</label>
+          <select id="capEstado"><option>Programada</option><option>Realizada</option><option>Reprogramada</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="capOverlay">Cancelar</button><button class="btn btn-primary" id="capGuardar">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL ASISTENTE -->
+<div class="overlay" id="asisOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="asisModalTitle">Agregar asistente</h3><button class="modal-close" data-close="asisOverlay">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="asisId"><input type="hidden" id="asisCapId">
+      <div class="form-row">
+        <div class="form-group"><label>Personal</label><select id="asisPersonal"></select></div>
+        <div class="form-group"><label>Asistencia</label><select id="asisAsistencia"><option>SI</option><option>NO</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Fecha</label><input type="date" id="asisFecha"></div>
+        <div class="form-group"><label>Responsable de evaluar eficacia</label><input type="text" id="asisEfResp"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Método de evaluación de eficacia</label><select id="asisEfMetodo"></select></div>
+        <div class="form-group"><label>Resultado (¿se logró el objetivo?)</label>
+          <select id="asisEfResultado"><option value="">Pendiente</option><option value="SI">SI</option><option value="NO">NO</option></select>
+        </div>
+      </div>
+      <div class="form-row full"><div class="form-group"><label>Observaciones / conclusiones</label><textarea id="asisEfObs" rows="2"></textarea></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-danger" id="asisBorrar" style="margin-right:auto;">Quitar</button><button class="btn btn-ghost" data-close="asisOverlay">Cancelar</button><button class="btn btn-primary" id="asisGuardar">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL ASISTENTES EN LOTE -->
+<div class="overlay" id="loteOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3>Cargar asistentes en lote</h3><button class="modal-close" data-close="loteOverlay">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="loteCapId">
+      <div class="form-row">
+        <div class="form-group"><label>Fecha</label><input type="date" id="loteFecha"></div>
+        <div class="form-group"><label>Responsable de evaluar eficacia</label><input type="text" id="loteEfResp"></div>
+      </div>
+      <div class="form-row full"><div class="form-group"><label>Método de evaluación de eficacia</label><select id="loteEfMetodo"></select></div></div>
+      <div class="form-group"><label>Personal que asistió <span class="muted">(clic en el sector para tildar a todos)</span></label>
+        <div class="checklist" id="loteChecklist"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><span class="muted" id="loteCount" style="margin-right:auto; align-self:center;"></span><button class="btn btn-ghost" data-close="loteOverlay">Cancelar</button><button class="btn btn-primary" id="loteGuardar">Guardar</button></div>
+  </div>
+</div>
+
+<!-- MODAL EVALUACION -->
+<div class="overlay" id="evalOverlay">
+  <div class="modal wide">
+    <div class="modal-head"><h3 id="evalModalTitle">Nueva evaluación de desempeño</h3><button class="modal-close" data-close="evalOverlay">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="evId">
+      <div class="form-row three">
+        <div class="form-group"><label>Personal</label><select id="evPersonal"></select></div>
+        <div class="form-group"><label>Período</label><select id="evPeriodo"><option>1° semestre</option><option>2° semestre</option></select></div>
+        <div class="form-group"><label>Fecha de evaluación</label><input type="date" id="evFecha"></div>
+      </div>
+      <div class="form-row full"><div class="form-group"><label>Evaluador (encargado de sector)</label><input type="text" id="evEvaluador"></div></div>
+      <div id="evIndicadores" class="hint" style="background:var(--crema); border-radius:8px; padding:10px 12px; display:none;"></div>
+      <div id="evCriteriosWrap"></div>
+      <div class="form-row" style="margin-top:14px;">
+        <div class="form-group"><label>Puntaje total</label><input type="text" id="evTotal" readonly style="font-weight:800;"></div>
+        <div class="form-group"><label>Promedio / Resultado</label><input type="text" id="evResultado" readonly style="font-weight:800;"></div>
+      </div>
+      <div class="form-row full"><div class="form-group"><label>Observaciones / acciones acordadas</label><textarea id="evObs" rows="2"></textarea></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" data-close="evalOverlay">Cancelar</button><button class="btn btn-primary" id="evGuardar">Guardar</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script id="seedData" type="application/json">{"PERSONAL": [{"id": "p001", "nombre": "Zalazar Araceli", "puesto": "Bachera", "ocupacion_original": "Bachera", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-04-20", "obs_carnet": ""}, {"id": "p002", "nombre": "Baez Juliana Sol", "puesto": "Cajero/a", "ocupacion_original": "Cajera", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2026-09-21", "obs_carnet": ""}, {"id": "p003", "nombre": "Cancino Ariana Micaela", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Moza", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-03-27", "obs_carnet": ""}, {"id": "p004", "nombre": "Pilquiman Gisela", "puesto": "Bachera", "ocupacion_original": "Bachera", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-05-23", "obs_carnet": ""}, {"id": "p005", "nombre": "Rivas Lucas", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Mozo", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-07-24", "obs_carnet": ""}, {"id": "p006", "nombre": "Martinez Sebastian", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-09-20", "obs_carnet": ""}, {"id": "p007", "nombre": "Gonzalez Andres Nicolas", "puesto": "Personal de stock", "ocupacion_original": "Stock", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-14", "obs_carnet": ""}, {"id": "p008", "nombre": "Meza Luciano", "puesto": "Personal de stock", "ocupacion_original": "Stock", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-14", "obs_carnet": ""}, {"id": "p009", "nombre": "Huenchupan Marcos", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-29", "obs_carnet": ""}, {"id": "p010", "nombre": "Corradi Abigail", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Moza", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-30", "obs_carnet": ""}, {"id": "p011", "nombre": "Donato Martina Daniela", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Moza", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-30", "obs_carnet": ""}, {"id": "p012", "nombre": "Nuñez Emanuel", "puesto": "Cajero/a", "ocupacion_original": "Cajero", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-31", "obs_carnet": ""}, {"id": "p013", "nombre": "Paz Julian", "puesto": "Bartender", "ocupacion_original": "Barman", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-31", "obs_carnet": ""}, {"id": "p014", "nombre": "Silva Bruno Cesar", "puesto": "Bartender", "ocupacion_original": "Barman", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-31", "obs_carnet": ""}, {"id": "p015", "nombre": "Vega Gaston Alejandro", "puesto": "Bartender", "ocupacion_original": "Barman", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-10-31", "obs_carnet": ""}, {"id": "p016", "nombre": "Alonso Melani", "puesto": "Cajero/a", "ocupacion_original": "Cajera", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-11-11", "obs_carnet": ""}, {"id": "p017", "nombre": "Medrano Beltran", "puesto": "Personal de Cocina", "ocupacion_original": "Cocinero", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2027-11-25", "obs_carnet": ""}, {"id": "p018", "nombre": "Curapil Eleazar", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2028-02-25", "obs_carnet": ""}, {"id": "p019", "nombre": "Yapileo Dario", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2028-04-10", "obs_carnet": ""}, {"id": "p020", "nombre": "Agustin Marizol", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Mozo", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2028-04-14", "obs_carnet": ""}, {"id": "p021", "nombre": "Benessi Lucia", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Mozo", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2028-04-21", "obs_carnet": ""}, {"id": "p022", "nombre": "Gonzalez Braian", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2028-04-29", "obs_carnet": ""}, {"id": "p023", "nombre": "Montenegro Valentina", "puesto": "Encargada de Desayuno / Ayudante de Cocina (Buffet)", "ocupacion_original": "Ay. Desayunador", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2028-05-29", "obs_carnet": ""}, {"id": "p024", "nombre": "Monzon Matias", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2028-08-20", "obs_carnet": ""}, {"id": "p025", "nombre": "Velo Tamara Gisella", "puesto": "Nutricionista / Responsable del SGC", "ocupacion_original": "Ay. Nutricionista", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2028-10-14", "obs_carnet": ""}, {"id": "p026", "nombre": "Sire Luis", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Mozo", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-02-03", "obs_carnet": ""}, {"id": "p027", "nombre": "Rodriguez Aixa", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Mozo", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-03-07", "obs_carnet": ""}, {"id": "p028", "nombre": "Sosa Ayelen", "puesto": "Bachera", "ocupacion_original": "Franq./bachera", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-04-06", "obs_carnet": ""}, {"id": "p029", "nombre": "Gonzalez Gonzalo", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-04-14", "obs_carnet": ""}, {"id": "p030", "nombre": "Pineda Valeria", "puesto": "Bachera", "ocupacion_original": "Franq./bachera", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-04-14", "obs_carnet": ""}, {"id": "p031", "nombre": "Balzi Andrea", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Moza", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-04-20", "obs_carnet": ""}, {"id": "p032", "nombre": "Becerra Gisela", "puesto": "Encargada de Desayuno / Ayudante de Cocina (Buffet)", "ocupacion_original": "Desayunador", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-04-20", "obs_carnet": ""}, {"id": "p033", "nombre": "Alzugaray Tomas", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Mozo", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-04-20", "obs_carnet": ""}, {"id": "p034", "nombre": "Pedraza Lourdes", "puesto": "Bachera", "ocupacion_original": "Bachera", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-06-04", "obs_carnet": ""}, {"id": "p035", "nombre": "Muñoz Agustin", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "2029-06-05", "obs_carnet": ""}, {"id": "p036", "nombre": "Perrota Martin", "puesto": "Bartender", "ocupacion_original": "Barman", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "", "obs_carnet": ""}, {"id": "p037", "nombre": "Silva Rafael", "puesto": "Bartender", "ocupacion_original": "Barman", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "", "obs_carnet": ""}, {"id": "p038", "nombre": "Linares Abdon", "puesto": "Mozo / Moza de Salón", "ocupacion_original": "Mozo", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "", "obs_carnet": ""}, {"id": "p039", "nombre": "Quintero Federico", "puesto": "Personal de Cocina", "ocupacion_original": "Ay. Cocina", "estado": "Activo", "fecha_ingreso": "", "fecha_baja": "", "motivo_baja": "", "plazo_induccion_dias": "90", "estado_induccion": "No aplica", "fecha_eval_induccion": "", "resultado_induccion": "", "vto_carnet": "", "obs_carnet": ""}], "PERFILES": [{"id": "pf01", "puesto": "Jefe de Cocina (Chef)", "sector": "Cocina", "reporta_a": "Nutricionista / Responsable del SGC", "mision": "Garantizar el funcionamiento del sector cocina, asegurando el cumplimiento de tareas total de menú. Encargado de la creación, elaboración y producción destinado a salon, eventos, cóctel socios, buffet. Encargado de capacitar al ayudante de cocina.", "funciones": "• Elaborar menú de viandas y salón. \n• Realizar pedidos y recibirlos con el correcto control.\n• Resolver incidencias (stock, equipos, demanda).", "equipos": "Heladeras exhibidoras\nHeladeras rack\nCámara N.º 1 y 3 de congelados\nCámara N.º 2 y 4\nFreezer de postres\nMáquina de hielo\nHorno inteligente/ horno industrial/ horno eléctrico\ncocina industrial, cuchipasta. carlitera. Plancha y freidoras\nLicuadora\nCortadora de fiambres\nHerramientas / utensilios\nBandejas.\nPlatos, ollas, genes, tupper. carros de genes, amasadora, mesadas de preparacion,", "documentos": "planilla de limpieza, planilla de stock, planilla de menú viandas, planilla de abastidor y horno eléctrico · fichero del personal", "indicadores": "", "competencias": "", "carnet_req": "A definir", "estado": "Activo"}, {"id": "pf02", "puesto": "Personal de Cocina", "sector": "Cocina", "reporta_a": "Jefe de Cocina (Chef)", "mision": "", "funciones": "", "equipos": "", "documentos": "planilla de limpieza, planilla de stock, planilla de menú viandas, planilla de abastidor y horno eléctrico · fichero del personal", "indicadores": "", "competencias": "Experiencia: Un básico de cocina, no necesariamente con experiencia.\nHabilidades: trabajo en equipo, liderazgo, concientización de higiene", "carnet_req": "Obligatorio", "estado": "Activo"}, {"id": "pf03", "puesto": "Personal de stock", "sector": "Stock y depósito de bebidas", "reporta_a": "Administración", "mision": "Garantizar el abastecimiento de bebidas alcohólicas y no alcoholicas a todo el establecimiento. Reposición de stock de desayunador, barras y heladeras exhibidoras de cocina", "funciones": "• Verificar y reponer stock de bebidas, insumos y utensilios. \n• Realizar pedidos y recibirlos con el correcto control.\n• Limpiar pallets y depósitos de uso de bebidas.\n• Resolver incidencias (stock, equipos, demanda).\n• Controlar limpieza y desinfección al cierre.", "equipos": "Carro de descarga y transporte de bebidas.", "documentos": "planilla de limpieza, planilla de vencimiento · planilla de stock. fichero de personal", "indicadores": "• Cumplimiento de la planilla de limpieza al cierre.\n• Ausencia de faltantes de stock.\n• cumplimiento de planilla de vencimiento.", "competencias": "Experiencia: que haya tenido al menos una experiencia y referencia laboral", "carnet_req": "Obligatorio", "estado": "Activo"}, {"id": "pf04", "puesto": "Encargado/a de Barra", "sector": "Barra", "reporta_a": "Dirección", "mision": "Garantizar el funcionamiento del sector Barra durante todo el turno (16:00 a 06:00 hs), asegurando el stock, la calidad del servicio y la higiene del sector.", "funciones": "• Coordinar apertura y cierre del sector.\n• Supervisar al equipo de bartenders.\n• Gestionar el traspaso entre turnos.\n• Resolver incidencias (stock, equipos, demanda).\n• Controlar limpieza y desinfección al cierre.", "equipos": "Licuadora · fábrica de hielo · heladeras exhibidoras y tipo rack · conservadora de hielo · utensilios de bartender", "documentos": "Planilla de limpieza · planilla de stock · planilla de vencimiento · fichero de personal", "indicadores": "• Cumplimiento de la planilla de limpieza al cierre.\n• Ausencia de faltantes de stock.\n• Reclamos de clientes durante el turno.", "competencias": "Experiencia: Experiencia en manejo de personal,  cursos y capacitaciones, referencias laborales.\nRequisitos de ingreso: A definir con Dirección (pendiente).", "carnet_req": "Obligatorio", "estado": "Activo"}, {"id": "pf05", "puesto": "Bartender", "sector": "Barra", "reporta_a": "Encargado/a de Barra", "mision": "Elaborar y despachar cócteles, tragos y demás bebidas de la carta, garantizando calidad, rapidez e higiene en el servicio.", "funciones": "• Realizar la mise en place (frutas, garnish, hielo).\n• Recibir el pedido del cliente o de salón.\n• Elaborar cócteles, tragos, cafetería y bebidas.\n• Despachar bebidas a salón o cliente.\n• Mantener limpieza continua del sector.\n• Colaborar en el cierre de jornada.", "equipos": "Coctelera · vaso mezclador · jigger · cuchara de bar · coladores · muddler · exprimidor manual · cuchillo y tabla de corte. tupper, bandejas descartables, film.", "documentos": "Planilla de limpieza · planilla de vencimiento", "indicadores": "• Tiempo de despacho de pedidos.\n• Errores en la elaboración de bebidas.\n• Cumplimiento de la mise en place.", "competencias": "Experiencia: Sí, curso de barista y coctelería. No es requisito tener experiencia pero se prioriza a quien la tuvo\nRequisitos de ingreso: A definir con Dirección (pendiente).", "carnet_req": "Obligatorio", "estado": "Activo"}, {"id": "pf06", "puesto": "Encargada de Desayuno / Ayudante de Cocina (Buffet)", "sector": "Desayuno / Buffet", "reporta_a": "Dirección", "mision": "Preparar, servir y resguardar el buffet de desayuno (06:00 a 10:30 hs), garantizando el cumplimiento de las condiciones de higiene e inocuidad alimentaria (BPM).", "funciones": "• Abrir el sector y precalentar equipos.\n• Armar el buffet (panificados, lácteos, medialunas, fiambres, cereales, frutas).\n• Cocinar alimentos críticos (huevos, panceta) y preparar jugos.\n• Registrar temperatura de alimentos críticos (Plan HACCP HACCP-LM-01).\n• Gestionar avisos de dietas especiales.\n• Cerrar el servicio: resguardo, limpieza, planillas.", "equipos": "Tolvas · plancha/sartén · horno inteligente y eléctrico · cortadora de fiambres · cámaras de refrigeración y congelados · máquina de café · exprimidores", "documentos": "Planilla de huésped · planilla de control de temperatura · planilla de limpieza · planilla de vencimiento · planilla de cápsulas de café", "indicadores": "• % de controles de temperatura registrados y conformes (PCC-01).\n• Cumplimiento del horario de armado del buffet.\n• Incidentes por dietas especiales no gestionadas.", "competencias": "Experiencia: Que haya tenido experiencia al menos una vez en mise en place y atención al huésped\nRequisitos de ingreso: A definir con Dirección (pendiente).", "carnet_req": "Obligatorio", "estado": "Activo"}, {"id": "pf07", "puesto": "Mozo / Moza de Salón", "sector": "Salón", "reporta_a": "Encargado/a de Salón", "mision": "Brindar el servicio de mesa al cliente, desde la recepción hasta el cierre de cuenta, garantizando una atención de calidad.", "funciones": "• Recibir y dar la bienvenida al cliente.\n• Presentar la carta y asesorar.\n• Tomar el pedido e ingresar la comanda.\n• Verificar los platos antes de servirlos.\n• Servir plato principal y postre.\n• Presentar la cuenta, cobrar y despedir al cliente.\n• Retirar vajilla y acondicionar la mesa.", "equipos": "Sistema de comandas · posnet · vajilla y cristalería de salón", "documentos": "Planilla de limpieza · fichero de personal", "indicadores": "• Errores en la toma de pedidos.\n• Tiempo de servicio desde la toma del pedido.\n• Reclamos de clientes durante el turno.", "competencias": "Experiencia: No es indispensable, pero se prioriza a quien tiene experiencia\nRequisitos de ingreso: A definir con Dirección (pendiente).", "carnet_req": "Obligatorio", "estado": "Activo"}, {"id": "pf08", "puesto": "Cajero/a", "sector": "Salón", "reporta_a": "Encargado/a de sector", "mision": "Gestionar el cobro y cierre de cuentas de clientes, asegurando la correcta conciliación de caja al finalizar el turno. (Apertura, arqueo y cierre de Caja). Controlar los minutos de descanso. Entregar billeteras con el cambio al personal. Da acceso al libro de sugerencias y reclamo para el cliente. Maneja agenda de reservas.", "funciones": "Recibir y registrar pedidos en el sistema.\n• Cobrar según medio de pago correspondiente.\n• Realizar el arqueo de caja al cierre.\n• Informar diferencias de caja al encargado.", "equipos": "Sistema de caja / comandas · posnet", "documentos": "Ticket / comprobantes de venta · planilla de cierre de caja", "indicadores": "• Diferencias de caja al cierre de turno.\n• Tiempo de atención en el cobro.", "competencias": "Experiencia: Indispensable la experiencia en cobros y medio de pago, manejo de dinero.\nRequisitos de ingreso: A definir con Dirección (pendiente).", "carnet_req": "Preferente", "estado": "Activo"}, {"id": "pf09", "puesto": "Encargado/a de Salón", "sector": "Salón", "reporta_a": "Nutricionista / Responsable del SGC", "mision": "", "funciones": "", "equipos": "", "documentos": "", "indicadores": "", "competencias": "", "carnet_req": "Obligatorio", "estado": "Activo"}, {"id": "pf10", "puesto": "Bachera", "sector": "Cocina", "reporta_a": "Jefe de Cocina (Chef)", "mision": "", "funciones": "", "equipos": "", "documentos": "", "indicadores": "", "competencias": "", "carnet_req": "Obligatorio", "estado": "Activo"}, {"id": "pf11", "puesto": "Nutricionista / Responsable del SGC", "sector": "Servicio de alimentación", "reporta_a": "Propietario / Gerente General", "mision": "", "funciones": "", "equipos": "", "documentos": "", "indicadores": "", "competencias": "", "carnet_req": "Obligatorio", "estado": "Activo"}], "CAPACITACIONES": [{"id": "cap2026-01", "anio": "2026", "actividad": "Capacitación SGC-BPM e Inocuidad Alimentaria (Sistema de Gestión, Política de Calidad, BPM, POES, registros)", "objetivo": "Actualizar y/o reforzar conocimientos del SGC", "responsable": "ING Consultora", "estado": "Programada", "mes_programado": "", "motivo_reprogramacion": "", "sector": "Todos"}, {"id": "cap2026-02", "anio": "2026", "actividad": "BPM / Plan HACCP (HACCP-LM-01) — personal de Desayuno y Cocina", "objetivo": "Nuevos conocimientos", "responsable": "Nutricionista", "estado": "Programada", "mes_programado": "", "motivo_reprogramacion": "", "sector": "Cocina / Desayuno"}, {"id": "cap2026-03", "anio": "2026", "actividad": "Manejo responsable de bebidas alcohólicas — personal de Barra", "objetivo": "Concientización", "responsable": "Encargado/a de Barra", "estado": "Programada", "mes_programado": "", "motivo_reprogramacion": "", "sector": "Barra"}, {"id": "cap2026-04", "anio": "2026", "actividad": "Atención al cliente — personal de Salón", "objetivo": "Nuevos conocimientos", "responsable": "Encargado/a de Salón", "estado": "Programada", "mes_programado": "", "motivo_reprogramacion": "", "sector": "Salón"}], "CAP_DETALLE": [], "EVAL_DESEMPENO": []}</script>
+<script>
+/* ============================================================
+   CONFIGURACIÓN — pegá acá la URL de la implementación del Apps Script
+   (Implementar → Nueva implementación → Aplicación web → URL /exec)
+   Si queda vacía, el tablero funciona en MODO DEMO (no guarda).
+   ============================================================ */
+const SHEET_API_URL = "";
+
+const UMBRAL_CARNET_DIAS = 60;
+
+const H_PERSONAL = ["id","nombre","puesto","ocupacion_original","estado","fecha_ingreso","fecha_baja","motivo_baja","plazo_induccion_dias","estado_induccion","fecha_eval_induccion","resultado_induccion","vto_carnet","obs_carnet"];
+const H_PERFILES = ["id","puesto","sector","reporta_a","mision","funciones","equipos","documentos","indicadores","competencias","carnet_req","estado"];
+const H_HIST = ["id","fecha","tipo","entidad","detalle"];
+const H_CAP = ["id","anio","actividad","objetivo","sector","responsable","estado","mes_programado","motivo_reprogramacion"];
+const H_DET = ["id","cap_id","anio","personal","asistencia","fecha","ef_responsable","ef_metodo","ef_fecha","ef_resultado","ef_obs"];
+const H_EVAL = ["id","anio","periodo","personal","puesto","puntaje_total","promedio","resultado","evaluador","fecha","observaciones","criterios"];
+
+const METODOS = ["Seguimiento en el puesto de trabajo (encargado de sector)","Cuestionario","Visual / observación directa","Revisión de registros (POES, temperaturas, vencimientos)","Seguimiento de evolución de indicadores","Evaluación de desempeño del colaborador","Auditoría interna","Otro"];
+
+const CRITERIOS = [
+  ["Cumplimiento","Termina sus tareas en tiempo y forma"],
+  ["Cumplimiento","Cumple con las tareas que se le encomiendan"],
+  ["Cumplimiento","Realiza un volumen adecuado de trabajo durante el turno"],
+  ["Calidad e inocuidad","No comete errores en el trabajo"],
+  ["Calidad e inocuidad","Cumple las BPM e higiene personal (uniforme, cofia, lavado de manos)"],
+  ["Calidad e inocuidad","Completa los registros de su sector en tiempo y forma (limpieza, temperaturas, vencimientos)"],
+  ["Calidad e inocuidad","Hace uso racional de los recursos e insumos"],
+  ["Calidad e inocuidad","No requiere de supervisión frecuente"],
+  ["Atención al cliente","Se muestra respetuoso y amable en el trato con el cliente"],
+  ["Atención al cliente","Resuelve consultas o reclamos, o los deriva correctamente"],
+  ["Relaciones interpersonales","Se muestra cortés con sus compañeros"],
+  ["Relaciones interpersonales","Brinda una adecuada orientación a compañeros nuevos"],
+  ["Relaciones interpersonales","Evita los conflictos dentro del trabajo"],
+  ["Iniciativa","Propone ideas para mejorar el servicio o el sector"],
+  ["Iniciativa","Se muestra predispuesto al cambio"],
+  ["Iniciativa","Se anticipa a las dificultades (faltantes, equipos, demanda)"],
+  ["Trabajo en equipo","Se integra al equipo y se identifica con sus objetivos"],
+  ["Trabajo en equipo","Colabora en apertura, cierre y traspaso de turno"],
+  ["Organización","Planifica su trabajo y su mise en place"],
+  ["Organización","Se preocupa por alcanzar las metas de su sector"],
+];
+
+let SEED = null;
+try{ SEED = JSON.parse(document.getElementById('seedData').textContent); }catch(e){ SEED = null; }
+const DEMO = !(SHEET_API_URL && SHEET_API_URL.indexOf('http')===0);
+
+let personal = [], perfiles = [], historial = [];
+let allCaps = [], allDetalle = [], allEval = [];
+const THIS_YEAR = String(new Date().getFullYear());
+let years = [THIS_YEAR];
+let currentYear = THIS_YEAR;
+
+/* ---------------- utilidades ---------------- */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function jsq(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function hoyIso(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); }
+function formatFecha(v){
+  if (!v) return '';
+  const s = String(v);
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+  return s;
+}
+function isoFecha(v){ const m = String(v||'').match(/^(\d{4}-\d{2}-\d{2})/); if (m) return m[1];
+  const m2 = String(v||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (m2) return `${m2[3]}-${m2[2].padStart(2,'0')}-${m2[1].padStart(2,'0')}`; return ''; }
+function diasHasta(fechaIso){ const f = new Date(isoFecha(fechaIso)+'T00:00:00'); const h = new Date(hoyIso()+'T00:00:00'); return Math.round((f-h)/86400000); }
+function diasEntre(fechaIso){ return -diasHasta(fechaIso); }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2600); }
+function setConn(status,text){ const el=document.getElementById('connStatus'); const dot=status==='ok'?'status-ok':status==='err'?'status-err':'status-wait'; el.innerHTML=`<span class="status-dot ${dot}"></span>${esc(text)}`; }
+function normalizeName(s){
+  return (s||'').toString().toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^A-Z\s]/g,'').split(/\s+/).filter(Boolean).sort().join(' ');
+}
+function namesMatch(a, b){
+  const wa = normalizeName(a).split(' ').filter(Boolean), wb = normalizeName(b).split(' ').filter(Boolean);
+  if (!wa.length || !wb.length) return false;
+  if (wa.length > 4 || wb.length > 4) return false;
+  const shorter = wa.length <= wb.length ? wa : wb, longer = wa.length <= wb.length ? wb : wa;
+  const used = new Array(longer.length).fill(false);
+  for (const w of shorter){
+    let found=false;
+    for (let i=0;i<longer.length;i++){
+      if (used[i]) continue; const lw=longer[i];
+      if (w===lw || (w.length===1 && lw[0]===w) || (lw.length===1 && w[0]===lw)){ used[i]=true; found=true; break; }
+    }
+    if (!found) return false;
+  }
+  return true;
+}
+
+/* ---------------- API Google Sheets ---------------- */
+async function apiGet(params){ const url = SHEET_API_URL+'?'+new URLSearchParams(params).toString(); const res = await fetch(url); return res.json(); }
+async function apiPost(body){ const res = await fetch(SHEET_API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}); try{ return await res.json(); }catch(e){ return {}; } }
+
+let readErrors = 0;
+async function readSheet(name){
+  if (DEMO) return [];
+  for (let attempt=1; attempt<=2; attempt++){
+    try{
+      const data = await apiGet({action:'read', sheet:name});
+      if (data && data.error){ console.error('Error leyendo', name, data.error); continue; }
+      return data.rows||[];
+    }catch(e){ console.error('Fallo leyendo', name, e); if (attempt===2) readErrors++; }
+  }
+  return [];
+}
+async function writeSheet(name, headers, rows){
+  if (DEMO) return;
+  try{
+    const r = await apiPost({action:'write', sheet:name, headers, rows});
+    if (r && r.error){ showToast('Error guardando '+name+': '+r.error); }
+  }catch(e){ showToast('No se pudo guardar en Google Sheets. Revisá la conexión.'); }
+}
+
+async function loadYears(){
+  if (DEMO){ years = [...new Set([THIS_YEAR, ...(SEED?SEED.CAPACITACIONES.map(c=>String(c.anio)):[])])].sort(); setConn('wait','Modo demo — sin Google Sheets'); return; }
+  try{
+    const meta = await apiGet({action:'meta'});
+    const ys = (meta.years||[]).filter(y=>/^\d{4}$/.test(y));
+    years = [...new Set([...ys, THIS_YEAR])].sort();
+    setConn('ok','Conectado a Google Sheets');
+  }catch(e){ years=[THIS_YEAR]; setConn('err','Sin conexión — revisar Apps Script'); }
+}
+
+function loadDemo(){
+  if (!SEED) return;
+  const c = JSON.parse(JSON.stringify(SEED));
+  personal = c.PERSONAL; perfiles = c.PERFILES; allCaps = c.CAPACITACIONES; allDetalle = c.CAP_DETALLE||[]; allEval = c.EVAL_DESEMPENO||[]; historial = [];
+}
+
+async function loadAll(){
+  readErrors = 0;
+  if (DEMO){ loadDemo(); document.getElementById('demoBanner').style.display='flex'; return; }
+  [personal, perfiles, historial] = await Promise.all([readSheet('PERSONAL'), readSheet('PERFILES'), readSheet('HISTORIAL')]);
+  allCaps = []; allDetalle = []; allEval = [];
+  const per = await Promise.all(years.map(y=>Promise.all([readSheet('CAPACITACIONES_'+y), readSheet('CAP_DETALLE_'+y), readSheet('EVAL_DESEMPENO_'+y)])));
+  per.forEach(([c,d,e])=>{ allCaps=allCaps.concat(c); allDetalle=allDetalle.concat(d); allEval=allEval.concat(e); });
+  document.getElementById('importBanner').style.display = (personal.length===0 ? 'flex' : 'none');
+  if (readErrors > 0){
+    setConn('err', `${readErrors} lectura(s) fallaron — recargá`);
+    showToast(`Ojo: ${readErrors} pestaña(s) no se pudieron leer. Recargá la página (Ctrl+Shift+R).`);
+  } else setConn('ok','Conectado a Google Sheets');
+}
+
+async function saveHistorial(tipo, entidad, detalle){
+  historial.push({id:'h'+Date.now(), fecha: hoyIso(), tipo, entidad, detalle});
+  await writeSheet('HISTORIAL', H_HIST, historial);
+}
+
+async function importarSeed(){
+  if (!SEED){ showToast('No se encontraron los datos iniciales.'); return; }
+  const btn = document.getElementById('btnImportar'); btn.textContent = 'Importando…'; btn.disabled = true;
+  perfiles = SEED.PERFILES; personal = SEED.PERSONAL;
+  await writeSheet('PERFILES', H_PERFILES, perfiles);
+  await writeSheet('PERSONAL', H_PERSONAL, personal);
+  const capsByYear = {};
+  SEED.CAPACITACIONES.forEach(c=>{ (capsByYear[c.anio] = capsByYear[c.anio]||[]).push(c); });
+  for (const y of Object.keys(capsByYear)){
+    await writeSheet('CAPACITACIONES_'+y, H_CAP, capsByYear[y]);
+    await writeSheet('CAP_DETALLE_'+y, H_DET, []);
+    await writeSheet('EVAL_DESEMPENO_'+y, H_EVAL, []);
+  }
+  historial = [];
+  await saveHistorial('Importación', 'Sistema', 'Carga inicial: personal y carnets (registro al 06/08/2026), perfiles de puesto (matriz borrador 2 + organigrama), plan de capacitación 2026');
+  await loadYears(); renderYearSelect(); await loadAll(); renderAll();
+  btn.textContent = 'Importar datos iniciales'; btn.disabled = false;
+  showToast('Datos iniciales importados.');
+}
+document.getElementById('btnImportar').addEventListener('click', importarSeed);
+
+/* ---------------- navegación ---------------- */
+const TITLES = {
+  resumen:["Resumen","Estado general de RRHH — La Mezquita Restaurante & Bar"],
+  nomina:["Nómina","Alta, baja, inducción y carnet de cada colaborador"],
+  perfiles:["Perfiles de puesto","Anexo I del P-RH-01 — misión, funciones, indicadores y competencias"],
+  carnets:["Carnets de manipulación de alimentos","Registro y control de vencimientos — requisito BPM"],
+  capacitaciones:["Capacitaciones","Plan y registro — eficacia individual por asistente"],
+  desempeno:["Desempeño","Evaluación semestral por competencias (encargado de sector)"],
+  ficha:["Ficha de empleado","Historial completo por persona: carnet, capacitaciones y desempeño"]
+};
+function goTab(tab){
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active', i.dataset.tab===tab));
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  document.getElementById('tab-'+tab).style.display='block';
+  document.getElementById('pageTitle').textContent = TITLES[tab][0];
+  document.getElementById('pageSub').textContent = TITLES[tab][1];
+  if (tab==='ficha') renderFicha();
+}
+document.querySelectorAll('.nav-item').forEach(item=> item.addEventListener('click', ()=> goTab(item.dataset.tab)));
+document.querySelectorAll('[data-close]').forEach(btn=> btn.addEventListener('click', ()=> document.getElementById(btn.dataset.close).classList.remove('open')));
+
+function renderYearSelect(){
+  const sel = document.getElementById('yearSelect');
+  sel.innerHTML = years.map(y=>`<option value="${y}" ${y===currentYear?'selected':''}>${y}</option>`).join('');
+}
+document.getElementById('yearSelect').addEventListener('change', e=>{ currentYear = e.target.value; renderAll(); });
+document.getElementById('btnNuevoAnio').addEventListener('click', async ()=>{
+  const y = prompt('¿Qué año querés agregar? (ej: 2027)');
+  if (!y || !/^\d{4}$/.test(y) || years.includes(y)) return;
+  years.push(y); years.sort(); currentYear=y;
+  await writeSheet('CAPACITACIONES_'+y, H_CAP, []);
+  await writeSheet('CAP_DETALLE_'+y, H_DET, []);
+  await writeSheet('EVAL_DESEMPENO_'+y, H_EVAL, []);
+  renderYearSelect(); renderAll();
+});
+document.getElementById('btnRecargar').addEventListener('click', async ()=>{
+  showToast(DEMO ? 'Modo demo: se restauran los datos iniciales.' : 'Recargando desde Google Sheets…');
+  await loadYears(); renderYearSelect(); await loadAll(); renderAll();
+  if (!DEMO && readErrors===0) showToast('Datos actualizados');
+});
+
+/* ---------------- lógica de negocio ---------------- */
+function perfilDe(puesto){ return perfiles.find(p=>p.puesto===puesto) || null; }
+function sectorDe(p){ const pf = perfilDe(p.puesto); return (pf && pf.sector) || 'Sin sector'; }
+function sectores(){ return [...new Set(perfiles.map(p=>p.sector).filter(Boolean))].sort(); }
+function activos(){ return personal.filter(p=>p.estado==='Activo'); }
+
+function estadoInduccion(p){
+  if (!p.fecha_ingreso) return {key:'No aplica', label:'No aplica', cls:'badge-gris'};
+  if (p.estado_induccion === 'Completa') return {key:'Completa', label:`Completa (${p.resultado_induccion||''})`, cls: p.resultado_induccion==='No eficaz' ? 'badge-rojo' : 'badge-verde'};
+  const plazo = Number(p.plazo_induccion_dias||90);
+  const restantes = plazo - diasEntre(p.fecha_ingreso);
+  if (restantes < 0) return {key:'Vencida', label:`Vencida (${Math.abs(restantes)}d)`, cls:'badge-rojo'};
+  return {key:'Pendiente', label:`Pendiente (${restantes}d)`, cls:'badge-amarillo'};
+}
+function estadoCarnet(p){
+  if (!isoFecha(p.vto_carnet)) return {key:'Sin dato', label:'Sin dato', cls:'badge-gris', dias:null};
+  const d = diasHasta(p.vto_carnet);
+  if (d < 0) return {key:'Vencido', label:'Vencido', cls:'badge-rojo', dias:d};
+  if (d <= UMBRAL_CARNET_DIAS) return {key:'Por vencer', label:'Por vencer', cls:'badge-amarillo', dias:d};
+  return {key:'Vigente', label:'Vigente', cls:'badge-verde', dias:d};
+}
+function reqCarnet(p){ const pf = perfilDe(p.puesto); return pf ? (pf.carnet_req||'A definir') : 'A definir'; }
+
+function fillSectorSelect(id, allLabel){
+  const sel = document.getElementById(id); const cur = sel.value;
+  sel.innerHTML = `<option value="">${allLabel||'Todos'}</option>` + sectores().map(s=>`<option>${esc(s)}</option>`).join('');
+  sel.value = cur;
+}
+function renderSectoresDatalist(){
+  document.getElementById('sectoresList').innerHTML = ['Todos', ...sectores()].map(s=>`<option value="${esc(s)}">`).join('');
+}
+
+/* ---------------- NÓMINA ---------------- */
+function renderNomina(){
+  const fSec = document.getElementById('filterSectorPersonal').value;
+  const fEstado = document.getElementById('filterEstadoPersonal').value;
+  const fInd = document.getElementById('filterInduccion').value;
+  const q = normalizeName(document.getElementById('searchPersonal').value);
+  const rows = personal.filter(p=>{
+    if (fEstado && p.estado!==fEstado) return false;
+    if (fSec && sectorDe(p)!==fSec) return false;
+    if (fInd && estadoInduccion(p).key!==fInd) return false;
+    if (q && !q.split(' ').every(w=>normalizeName(p.nombre).indexOf(w)>=0)) return false;
+    return true;
+  }).sort((a,b)=> a.nombre.localeCompare(b.nombre));
+  const tbody = document.getElementById('personalTableBody'), empty = document.getElementById('personalEmpty');
+  if (!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = rows.map(p=>{
+    const ind = estadoInduccion(p), car = estadoCarnet(p);
+    const estadoBadge = p.estado==='Activo' ? '<span class="badge badge-verde">Activo</span>' : '<span class="badge badge-gris">Baja</span>';
+    let extBtn = '';
+    if (ind.key==='Pendiente' || ind.key==='Vencida'){
+      extBtn = `${Number(p.plazo_induccion_dias)<180?`<button class="btn btn-ghost btn-sm" onclick="extenderInduccion('${p.id}')">Extender a 180d</button>`:''}
+                <button class="btn btn-ghost btn-sm" onclick="openInduccion('${p.id}')">Registrar inducción</button>`;
+    }
+    return `<tr>
+      <td><b class="link-name" style="cursor:pointer;" onclick="verFicha('${p.id}')">${esc(p.nombre)}</b></td>
+      <td>${esc(p.puesto)}</td>
+      <td>${esc(sectorDe(p))}</td>
+      <td>${estadoBadge}</td>
+      <td>${formatFecha(p.fecha_ingreso)||'—'}</td>
+      <td><span class="badge ${ind.cls}">${ind.label}</span></td>
+      <td><span class="badge ${car.cls}">${car.label}</span></td>
+      <td style="white-space:nowrap;">
+        ${extBtn}
+        <button class="btn btn-ghost btn-sm" onclick="editPersonal('${p.id}')">Editar</button>
+        ${p.estado==='Activo'
+          ? `<button class="btn btn-danger btn-sm" onclick="bajaPersonal('${p.id}')">Baja</button>`
+          : `<button class="btn btn-ghost btn-sm" onclick="reactivarPersonal('${p.id}')">Reactivar</button>`}
+      </td>
+    </tr>`;
+  }).join('');
+}
+['filterSectorPersonal','filterEstadoPersonal','filterInduccion'].forEach(id=>document.getElementById(id).addEventListener('change', renderNomina));
+document.getElementById('searchPersonal').addEventListener('input', renderNomina);
+
+function renderPuestoOptions(sel, actual){
+  const act = perfiles.filter(p=>p.estado==='Activo' || p.puesto===actual);
+  sel.innerHTML = act.map(p=>`<option value="${esc(p.puesto)}">${esc(p.puesto)}</option>`).join('');
+}
+document.getElementById('btnAltaPersonal').addEventListener('click', ()=>{
+  document.getElementById('personalModalTitle').textContent='Alta de empleado';
+  ['pId','pNombre','pVtoCarnet','pObsCarnet'].forEach(id=>document.getElementById(id).value='');
+  renderPuestoOptions(document.getElementById('pPuesto'));
+  document.getElementById('pFechaIngreso').value = hoyIso();
+  document.getElementById('pPlazo').value='90';
+  document.getElementById('personalOverlay').classList.add('open');
+});
+window.editPersonal = function(id){
+  const p = personal.find(x=>x.id===id); if (!p) return;
+  document.getElementById('personalModalTitle').textContent='Editar empleado';
+  document.getElementById('pId').value=p.id;
+  document.getElementById('pNombre').value=p.nombre;
+  renderPuestoOptions(document.getElementById('pPuesto'), p.puesto);
+  document.getElementById('pPuesto').value=p.puesto;
+  document.getElementById('pFechaIngreso').value=isoFecha(p.fecha_ingreso);
+  document.getElementById('pPlazo').value=String(p.plazo_induccion_dias||90);
+  document.getElementById('pVtoCarnet').value=isoFecha(p.vto_carnet);
+  document.getElementById('pObsCarnet').value=p.obs_carnet||'';
+  document.getElementById('personalOverlay').classList.add('open');
+};
+document.getElementById('pGuardar').addEventListener('click', async ()=>{
+  const id = document.getElementById('pId').value;
+  const nombre = document.getElementById('pNombre').value.trim();
+  if (!nombre){ alert('Completá el nombre.'); return; }
+  const fechaIngreso = document.getElementById('pFechaIngreso').value;
+  const plazo = document.getElementById('pPlazo').value;
+  const data = { nombre, puesto:document.getElementById('pPuesto').value, fecha_ingreso:fechaIngreso, plazo_induccion_dias:plazo,
+    vto_carnet:document.getElementById('pVtoCarnet').value, obs_carnet:document.getElementById('pObsCarnet').value };
+  if (id){
+    const p = personal.find(x=>x.id===id);
+    if (!p.fecha_ingreso && fechaIngreso && p.estado_induccion==='No aplica') data.estado_induccion='Pendiente';
+    Object.assign(p, data);
+    await writeSheet('PERSONAL', H_PERSONAL, personal);
+    await saveHistorial('Edición', nombre, 'Datos de personal actualizados');
+  } else {
+    personal.push({ id:'p'+Date.now(), ocupacion_original:'', estado:'Activo', fecha_baja:'', motivo_baja:'',
+      estado_induccion: fechaIngreso ? 'Pendiente':'No aplica', fecha_eval_induccion:'', resultado_induccion:'', ...data });
+    await writeSheet('PERSONAL', H_PERSONAL, personal);
+    await saveHistorial('Alta', nombre, `Ingreso ${fechaIngreso} — evaluación de inducción a ${plazo} días`);
+  }
+  document.getElementById('personalOverlay').classList.remove('open');
+  renderAll(); showToast('Guardado');
+});
+window.bajaPersonal = async function(id){
+  const p = personal.find(x=>x.id===id); if (!p) return;
+  const motivo = prompt(`Motivo de la baja de ${p.nombre}:`);
+  if (motivo===null) return;
+  p.estado='Baja'; p.fecha_baja=hoyIso(); p.motivo_baja=motivo;
+  await writeSheet('PERSONAL', H_PERSONAL, personal);
+  await saveHistorial('Baja', p.nombre, motivo||'Sin motivo especificado');
+  renderAll(); showToast('Baja registrada');
+};
+window.reactivarPersonal = async function(id){
+  const p = personal.find(x=>x.id===id); if (!p) return;
+  p.estado='Activo'; p.fecha_baja=''; p.motivo_baja='';
+  await writeSheet('PERSONAL', H_PERSONAL, personal);
+  await saveHistorial('Reactivación', p.nombre, 'Reingreso / reactivación');
+  renderAll(); showToast('Reactivado');
+};
+window.extenderInduccion = async function(id){
+  const p = personal.find(x=>x.id===id); if (!p) return;
+  if (!confirm(`¿Extender el plazo de evaluación de inducción de ${p.nombre} a 180 días?`)) return;
+  p.plazo_induccion_dias = '180';
+  await writeSheet('PERSONAL', H_PERSONAL, personal);
+  await saveHistorial('Extensión inducción', p.nombre, 'Plazo extendido de 90 a 180 días');
+  renderAll(); showToast('Plazo extendido a 180 días');
+};
+window.openInduccion = function(id){
+  const p = personal.find(x=>x.id===id); if (!p) return;
+  document.getElementById('indId').value = id;
+  document.getElementById('indModalTitle').textContent = 'Resultado de inducción — '+p.nombre;
+  document.getElementById('indFecha').value = hoyIso();
+  document.getElementById('indOverlay').classList.add('open');
+};
+document.getElementById('indGuardar').addEventListener('click', async ()=>{
+  const p = personal.find(x=>x.id===document.getElementById('indId').value); if (!p) return;
+  p.estado_induccion='Completa'; p.resultado_induccion=document.getElementById('indResultado').value; p.fecha_eval_induccion=document.getElementById('indFecha').value;
+  await writeSheet('PERSONAL', H_PERSONAL, personal);
+  await saveHistorial('Evaluación inducción', p.nombre, `Resultado: ${p.resultado_induccion}`);
+  document.getElementById('indOverlay').classList.remove('open');
+  renderAll(); showToast('Resultado registrado');
+});
+
+/* ---------------- PERFILES ---------------- */
+function ocupantesDe(puesto){ return activos().filter(p=>p.puesto===puesto); }
+function perfilIncompleto(p){ return !String(p.mision||'').trim() || !String(p.funciones||'').trim(); }
+function renderPerfiles(){
+  const fEstado = document.getElementById('filterEstadoPerfil').value;
+  const rows = perfiles.filter(p=> !fEstado || p.estado===fEstado);
+  const tbody = document.getElementById('perfilesTableBody'), empty = document.getElementById('perfilesEmpty');
+  if (!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = rows.map(p=>{
+    const oc = ocupantesDe(p.puesto);
+    const carCls = p.carnet_req==='Obligatorio'?'badge-verde':p.carnet_req==='Preferente'?'badge-amarillo':'badge-gris';
+    return `<tr>
+      <td><b>${esc(p.puesto)}</b> ${perfilIncompleto(p)?'<span class="badge badge-amarillo">A completar</span>':''}</td>
+      <td>${esc(p.sector||'—')}</td>
+      <td>${esc(p.reporta_a||'—')}</td>
+      <td title="${esc(oc.map(o=>o.nombre).join(', '))}">${oc.length ? `<b>${oc.length}</b> <span class="muted">${esc(oc.slice(0,2).map(o=>o.nombre).join(', '))}${oc.length>2?'…':''}</span>` : '<span class="muted">Vacante</span>'}</td>
+      <td><span class="badge ${carCls}">${esc(p.carnet_req||'A definir')}</span></td>
+      <td>${p.estado==='Activo' ? '<span class="badge badge-verde">Activo</span>' : '<span class="badge badge-gris">Baja</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="editPerfil('${p.id}')">Ver / Editar</button>
+        ${p.estado==='Activo'
+          ? `<button class="btn btn-danger btn-sm" onclick="bajaPerfil('${p.id}')">Dar de baja</button>`
+          : `<button class="btn btn-ghost btn-sm" onclick="reactivarPerfil('${p.id}')">Reactivar</button>`}
+      </td>
+    </tr>`;
+  }).join('');
+}
+document.getElementById('filterEstadoPerfil').addEventListener('change', renderPerfiles);
+const PF_FIELDS = {pfPuesto:'puesto',pfSector:'sector',pfReporta:'reporta_a',pfMision:'mision',pfFunciones:'funciones',pfEquipos:'equipos',pfDocumentos:'documentos',pfIndicadores:'indicadores',pfCompetencias:'competencias',pfCarnet:'carnet_req'};
+document.getElementById('btnNuevoPerfil').addEventListener('click', ()=>{
+  document.getElementById('perfilModalTitle').textContent='Nuevo perfil de puesto';
+  document.getElementById('pfId').value='';
+  Object.keys(PF_FIELDS).forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pfCarnet').value='Obligatorio';
+  document.getElementById('pfOcupantes').value='';
+  document.getElementById('perfilOverlay').classList.add('open');
+});
+window.editPerfil = function(id){
+  const p = perfiles.find(x=>x.id===id); if (!p) return;
+  document.getElementById('perfilModalTitle').textContent='Perfil de puesto — '+p.puesto;
+  document.getElementById('pfId').value=p.id;
+  Object.entries(PF_FIELDS).forEach(([el,f])=>document.getElementById(el).value=p[f]||'');
+  if (!p.carnet_req) document.getElementById('pfCarnet').value='A definir';
+  document.getElementById('pfOcupantes').value = ocupantesDe(p.puesto).map(o=>o.nombre).join(', ') || 'Vacante';
+  document.getElementById('perfilOverlay').classList.add('open');
+};
+document.getElementById('pfGuardar').addEventListener('click', async ()=>{
+  const id = document.getElementById('pfId').value;
+  const data = {}; Object.entries(PF_FIELDS).forEach(([el,f])=>data[f]=document.getElementById(el).value);
+  data.puesto = data.puesto.trim();
+  if (!data.puesto){ alert('Completá el puesto.'); return; }
+  if (id){
+    const p = perfiles.find(x=>x.id===id);
+    if (p.puesto !== data.puesto){
+      personal.forEach(x=>{ if (x.puesto===p.puesto) x.puesto=data.puesto; });
+      await writeSheet('PERSONAL', H_PERSONAL, personal);
+    }
+    Object.assign(p, data);
+    await saveHistorial('Edición perfil', data.puesto, 'Perfil de puesto actualizado');
+  } else {
+    perfiles.push({id:'pf'+Date.now(), ...data, estado:'Activo'});
+    await saveHistorial('Alta perfil', data.puesto, 'Nuevo perfil de puesto creado');
+  }
+  await writeSheet('PERFILES', H_PERFILES, perfiles);
+  document.getElementById('perfilOverlay').classList.remove('open');
+  renderAll(); showToast('Guardado');
+});
+window.bajaPerfil = async function(id){
+  const p = perfiles.find(x=>x.id===id); if (!p) return;
+  if (!confirm(`¿Dar de baja el perfil "${p.puesto}"?`)) return;
+  p.estado='Baja';
+  await writeSheet('PERFILES', H_PERFILES, perfiles);
+  await saveHistorial('Baja perfil', p.puesto, 'Perfil dado de baja');
+  renderAll(); showToast('Perfil dado de baja');
+};
+window.reactivarPerfil = async function(id){
+  const p = perfiles.find(x=>x.id===id); if (!p) return;
+  p.estado='Activo';
+  await writeSheet('PERFILES', H_PERFILES, perfiles);
+  await saveHistorial('Reactivación perfil', p.puesto, 'Perfil reactivado');
+  renderAll(); showToast('Perfil reactivado');
+};
+
+/* ---------------- CARNETS ---------------- */
+function carnetStats(list){
+  const s = {Vigente:0,'Por vencer':0,Vencido:0,'Sin dato':0};
+  list.forEach(p=> s[estadoCarnet(p).key]++);
+  return s;
+}
+function renderCarnets(){
+  const act = activos();
+  const s = carnetStats(act);
+  document.getElementById('umbralTxt').textContent = UMBRAL_CARNET_DIAS;
+  document.getElementById('carnetCards').innerHTML = `
+    <div class="card"><div class="card-label">Personal activo</div><div class="card-value">${act.length}</div></div>
+    <div class="card"><div class="card-label">Vigentes</div><div class="card-value">${s.Vigente}</div><div class="card-sub">${act.length?Math.round(s.Vigente/act.length*100):0}% del personal</div></div>
+    <div class="card aviso"><div class="card-label">Por vencer (≤${UMBRAL_CARNET_DIAS} días)</div><div class="card-value">${s['Por vencer']}</div></div>
+    <div class="card alerta"><div class="card-label">Vencidos</div><div class="card-value">${s.Vencido}</div></div>
+    <div class="card neutro"><div class="card-label">Sin dato</div><div class="card-value">${s['Sin dato']}</div><div class="card-sub">falta cargar vencimiento</div></div>`;
+  const fSec = document.getElementById('filterSectorCarnet').value;
+  const fEst = document.getElementById('filterEstadoCarnet').value;
+  const orden = {'Vencido':0,'Por vencer':1,'Sin dato':2,'Vigente':3};
+  const rows = act.filter(p=> (!fSec || sectorDe(p)===fSec) && (!fEst || estadoCarnet(p).key===fEst))
+    .sort((a,b)=>{ const ea=estadoCarnet(a), eb=estadoCarnet(b); return (orden[ea.key]-orden[eb.key]) || ((ea.dias??99999)-(eb.dias??99999)) || a.nombre.localeCompare(b.nombre); });
+  const tbody = document.getElementById('carnetTableBody'), empty = document.getElementById('carnetEmpty');
+  if (!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = rows.map(p=>{
+    const c = estadoCarnet(p), req = reqCarnet(p);
+    const dias = c.dias==null ? '—' : (c.dias<0 ? `<b style="color:var(--rojo)">vencido hace ${Math.abs(c.dias)}d</b>` : `${c.dias}`);
+    return `<tr>
+      <td><b>${esc(p.nombre)}</b></td>
+      <td>${esc(p.puesto)}</td>
+      <td>${esc(sectorDe(p))}</td>
+      <td><span class="muted">${esc(req)}</span></td>
+      <td>${formatFecha(p.vto_carnet)||'—'}</td>
+      <td>${dias}</td>
+      <td><span class="badge ${c.cls}">${c.label}</span></td>
+      <td><span class="muted">${esc(p.obs_carnet||'')}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openCarnet('${p.id}')">${c.key==='Sin dato'?'Cargar vto.':'Renovar / editar'}</button></td>
+    </tr>`;
+  }).join('');
+}
+['filterSectorCarnet','filterEstadoCarnet'].forEach(id=>document.getElementById(id).addEventListener('change', renderCarnets));
+window.openCarnet = function(id){
+  const p = personal.find(x=>x.id===id); if (!p) return;
+  document.getElementById('cId').value = id;
+  document.getElementById('carnetModalTitle').textContent = 'Carnet de manipulación — '+p.nombre;
+  document.getElementById('cVto').value = isoFecha(p.vto_carnet);
+  document.getElementById('cObs').value = p.obs_carnet||'';
+  document.getElementById('carnetOverlay').classList.add('open');
+};
+document.getElementById('cGuardar').addEventListener('click', async ()=>{
+  const p = personal.find(x=>x.id===document.getElementById('cId').value); if (!p) return;
+  const antes = p.vto_carnet;
+  p.vto_carnet = document.getElementById('cVto').value; p.obs_carnet = document.getElementById('cObs').value;
+  await writeSheet('PERSONAL', H_PERSONAL, personal);
+  await saveHistorial('Carnet', p.nombre, `Vencimiento ${formatFecha(antes)||'sin dato'} → ${formatFecha(p.vto_carnet)||'sin dato'}`);
+  document.getElementById('carnetOverlay').classList.remove('open');
+  renderAll(); showToast('Carnet actualizado');
+});
+
+/* ---------------- CAPACITACIONES ---------------- */
+let expandedCapId = null;
+function capsCurrentYear(){ return allCaps.filter(c=>String(c.anio)===String(currentYear)); }
+function detalleFor(capId){ return allDetalle.filter(d=>d.cap_id===capId); }
+function renderFiltersCap(){
+  const objs = [...new Set(capsCurrentYear().map(c=>c.objetivo).filter(Boolean))];
+  const sel = document.getElementById('filterObjetivo'); const cur = sel.value;
+  sel.innerHTML = '<option value="">Todos</option>' + objs.map(o=>`<option>${esc(o)}</option>`).join('');
+  sel.value = cur;
+}
+function badgeEficacia(v){
+  if (v==='SI') return '<span class="badge badge-verde">Eficaz</span>';
+  if (v==='NO') return '<span class="badge badge-rojo">No eficaz</span>';
+  return '<span class="badge badge-amarillo">Pendiente</span>';
+}
+function renderCapTable(){
+  const fObj = document.getElementById('filterObjetivo').value;
+  const fEst = document.getElementById('filterEstadoCap').value;
+  const rows = capsCurrentYear().filter(c=> (!fObj||c.objetivo===fObj) && (!fEst||c.estado===fEst));
+  const tbody = document.getElementById('capTableBody'), empty = document.getElementById('capEmpty');
+  if (!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  let html = '';
+  rows.forEach(c=>{
+    const det = detalleFor(c.id);
+    const efCount = det.filter(d=>d.ef_resultado==='SI'||d.ef_resultado==='NO').length;
+    const estadoBadge = c.estado==='Realizada' ? 'badge-verde' : c.estado==='Reprogramada' ? 'badge-amarillo' : 'badge-gris';
+    html += `<tr class="cap-row" onclick="toggleCap('${c.id}')">
+      <td><b>${expandedCapId===c.id?'▾':'▸'} ${esc(c.actividad)}</b></td>
+      <td>${esc(c.sector||'—')}</td>
+      <td><span class="badge badge-gris">${esc(c.objetivo||'')}</span></td>
+      <td>${esc(c.responsable||'')}</td>
+      <td><span class="badge ${estadoBadge}">${esc(c.estado)}</span> <span class="muted">${c.mes_programado? '· '+esc(c.mes_programado):'· mes a definir'}</span></td>
+      <td>${det.length} <span class="muted">(${efCount} evaluados)</span></td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="editCap('${c.id}')">Editar</button>
+        ${c.estado!=='Realizada'?`<button class="btn btn-ghost btn-sm" onclick="marcarRealizada('${c.id}')">Marcar realizada</button>
+        <button class="btn btn-ghost btn-sm" onclick="reprogramarCap('${c.id}')">Reprogramar</button>`:''}
+      </td>
+    </tr>`;
+    if (expandedCapId === c.id){
+      html += `<tr class="cap-detail"><td colspan="7"><div class="cap-detail-inner">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; gap:8px; flex-wrap:wrap;">
+          <b>Asistentes y eficacia individual</b>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="openLote('${c.id}')">+ Cargar asistentes en lote</button>
+            <button class="btn btn-primary btn-sm" onclick="openAsisModal('${c.id}')">+ Agregar asistente</button>
+          </div>
+        </div>
+        ${c.motivo_reprogramacion?`<div class="hint" style="margin-bottom:8px;">Motivo de reprogramación: ${esc(c.motivo_reprogramacion)}</div>`:''}
+        <div class="table-wrap" style="max-height:320px;">
+        <table><thead><tr><th>Personal</th><th>Asist.</th><th>Fecha</th><th>Método eficacia</th><th>Resultado</th><th>Obs.</th><th></th></tr></thead><tbody>
+        ${det.map(d=>`<tr>
+          <td>${esc(d.personal)}</td><td>${esc(d.asistencia||'')}</td><td>${formatFecha(d.fecha)}</td>
+          <td>${esc(d.ef_metodo||'')}</td><td>${badgeEficacia(d.ef_resultado)}</td><td>${esc(d.ef_obs||'')}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="openAsisModal('${c.id}','${d.id}')">Editar</button></td>
+        </tr>`).join('') || '<tr><td colspan="7" class="hint">Sin asistentes cargados.</td></tr>'}
+        </tbody></table></div>
+      </div></td></tr>`;
+    }
+  });
+  tbody.innerHTML = html;
+}
+window.toggleCap = function(id){ expandedCapId = (expandedCapId===id) ? null : id; renderCapTable(); };
+document.getElementById('filterObjetivo').addEventListener('change', renderCapTable);
+document.getElementById('filterEstadoCap').addEventListener('change', renderCapTable);
+
+async function saveCaps(){ await writeSheet('CAPACITACIONES_'+currentYear, H_CAP, capsCurrentYear()); }
+async function saveDet(){ await writeSheet('CAP_DETALLE_'+currentYear, H_DET, allDetalle.filter(d=>String(d.anio)===String(currentYear))); }
+
+document.getElementById('btnNuevaCap').addEventListener('click', ()=>{
+  document.getElementById('capModalTitle').textContent='Nueva capacitación';
+  ['capId','capActividad','capResponsable','capSector'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('capEstado').value='Programada'; document.getElementById('capMes').value='';
+  document.getElementById('capOverlay').classList.add('open');
+});
+window.editCap = function(id){
+  const c = allCaps.find(x=>x.id===id); if (!c) return;
+  document.getElementById('capModalTitle').textContent='Editar capacitación';
+  document.getElementById('capId').value=c.id;
+  document.getElementById('capActividad').value=c.actividad||'';
+  document.getElementById('capObjetivo').value=c.objetivo||'Nuevos conocimientos';
+  document.getElementById('capSector').value=c.sector||'';
+  document.getElementById('capResponsable').value=c.responsable||'';
+  document.getElementById('capMes').value=c.mes_programado||'';
+  document.getElementById('capEstado').value=c.estado||'Programada';
+  document.getElementById('capOverlay').classList.add('open');
+};
+document.getElementById('capGuardar').addEventListener('click', async ()=>{
+  const id = document.getElementById('capId').value;
+  const actividad = document.getElementById('capActividad').value.trim();
+  if (!actividad){ alert('Completá la actividad.'); return; }
+  const data = { actividad, objetivo:document.getElementById('capObjetivo').value, sector:document.getElementById('capSector').value,
+    responsable:document.getElementById('capResponsable').value, estado:document.getElementById('capEstado').value, mes_programado:document.getElementById('capMes').value };
+  if (id){ Object.assign(allCaps.find(x=>x.id===id), data); await saveHistorial('Edición capacitación', actividad, 'Datos actualizados'); }
+  else { allCaps.push({id:'cap'+Date.now(), anio:currentYear, motivo_reprogramacion:'', ...data}); await saveHistorial('Nueva capacitación', actividad, `Objetivo: ${data.objetivo}`); }
+  await saveCaps();
+  document.getElementById('capOverlay').classList.remove('open');
+  renderAll(); showToast('Capacitación guardada');
+});
+window.marcarRealizada = async function(id){
+  const c = allCaps.find(x=>x.id===id); if (!c) return;
+  c.estado='Realizada'; await saveCaps();
+  await saveHistorial('Capacitación realizada', c.actividad, '');
+  expandedCapId = id; renderAll(); showToast('Marcada como realizada — cargá los asistentes');
+};
+window.reprogramarCap = async function(id){
+  const c = allCaps.find(x=>x.id===id); if (!c) return;
+  const nuevoMes = prompt('Nuevo mes programado:', c.mes_programado||'');
+  if (nuevoMes===null) return;
+  const motivo = prompt('Motivo de la reprogramación:') || '';
+  c.estado='Reprogramada'; c.mes_programado=nuevoMes; c.motivo_reprogramacion=motivo;
+  await saveCaps();
+  await saveHistorial('Reprogramación', c.actividad, `Nuevo mes: ${nuevoMes}. Motivo: ${motivo}`);
+  renderAll(); showToast('Capacitación reprogramada');
+};
+
+function fillMetodos(sel){ sel.innerHTML = METODOS.map(m=>`<option>${esc(m)}</option>`).join(''); }
+fillMetodos(document.getElementById('asisEfMetodo')); fillMetodos(document.getElementById('loteEfMetodo'));
+
+function renderPersonalSelectActivo(sel, incluir){
+  const list = activos().slice().sort((a,b)=>a.nombre.localeCompare(b.nombre));
+  if (incluir && !list.find(p=>p.nombre===incluir)) list.unshift({nombre:incluir});
+  sel.innerHTML = list.map(p=>`<option value="${esc(p.nombre)}">${esc(p.nombre)}</option>`).join('');
+}
+function evalVigente(nombre){
+  const evs = allEval.filter(e=>String(e.anio)===String(currentYear) && namesMatch(e.personal, nombre));
+  return evs.sort((a,b)=>String(b.periodo).localeCompare(String(a.periodo)))[0] || null;
+}
+function syncEficaciaDesempeno(){
+  const metodo = document.getElementById('asisEfMetodo').value;
+  const personalSel = document.getElementById('asisPersonal').value;
+  const resultSel = document.getElementById('asisEfResultado');
+  if (metodo === 'Evaluación de desempeño del colaborador'){
+    const ev = evalVigente(personalSel);
+    resultSel.disabled = true;
+    if (ev){
+      resultSel.value = (ev.resultado==='Apto destacado'||ev.resultado==='Apto') ? 'SI' : 'NO';
+      document.getElementById('asisEfObs').value = `Vinculado a evaluación de desempeño ${currentYear} (${ev.periodo}): ${ev.resultado} (${ev.promedio}/5).`;
+    } else {
+      resultSel.value = '';
+      document.getElementById('asisEfObs').value = `Sin evaluación de desempeño ${currentYear} cargada todavía para ${personalSel} — cargala en la pestaña Desempeño.`;
+    }
+  } else resultSel.disabled = false;
+}
+document.getElementById('asisEfMetodo').addEventListener('change', syncEficaciaDesempeno);
+document.getElementById('asisPersonal').addEventListener('change', syncEficaciaDesempeno);
+
+window.openAsisModal = function(capId, asisId){
+  document.getElementById('asisCapId').value = capId;
+  const d = asisId ? allDetalle.find(x=>x.id===asisId) : null;
+  renderPersonalSelectActivo(document.getElementById('asisPersonal'), d && d.personal);
+  document.getElementById('asisModalTitle').textContent = d ? 'Editar asistente' : 'Agregar asistente';
+  document.getElementById('asisBorrar').style.display = d ? '' : 'none';
+  document.getElementById('asisId').value = d ? d.id : '';
+  if (d) document.getElementById('asisPersonal').value = d.personal;
+  document.getElementById('asisAsistencia').value = d ? (d.asistencia||'SI') : 'SI';
+  document.getElementById('asisFecha').value = d ? isoFecha(d.fecha) : hoyIso();
+  document.getElementById('asisEfResp').value = d ? (d.ef_responsable||'') : '';
+  document.getElementById('asisEfMetodo').value = d ? (d.ef_metodo||'Otro') : METODOS[0];
+  document.getElementById('asisEfResultado').value = d ? (d.ef_resultado||'') : '';
+  document.getElementById('asisEfObs').value = d ? (d.ef_obs||'') : '';
+  document.getElementById('asisOverlay').classList.add('open');
+  if (!d || d.ef_metodo==='Evaluación de desempeño del colaborador') syncEficaciaDesempeno(); else document.getElementById('asisEfResultado').disabled=false;
+};
+document.getElementById('asisGuardar').addEventListener('click', async ()=>{
+  const capId = document.getElementById('asisCapId').value, id = document.getElementById('asisId').value;
+  const data = { cap_id: capId, anio: currentYear,
+    personal: document.getElementById('asisPersonal').value, asistencia: document.getElementById('asisAsistencia').value,
+    fecha: document.getElementById('asisFecha').value, ef_responsable: document.getElementById('asisEfResp').value,
+    ef_metodo: document.getElementById('asisEfMetodo').value, ef_fecha: document.getElementById('asisFecha').value,
+    ef_resultado: document.getElementById('asisEfResultado').value, ef_obs: document.getElementById('asisEfObs').value };
+  if (id) Object.assign(allDetalle.find(x=>x.id===id), data);
+  else allDetalle.push({id:'det'+Date.now(), ...data});
+  await saveDet();
+  document.getElementById('asisOverlay').classList.remove('open');
+  renderAll(); showToast('Guardado');
+});
+document.getElementById('asisBorrar').addEventListener('click', async ()=>{
+  const id = document.getElementById('asisId').value; if (!id) return;
+  if (!confirm('¿Quitar a este asistente de la capacitación?')) return;
+  allDetalle = allDetalle.filter(d=>d.id!==id);
+  await saveDet();
+  document.getElementById('asisOverlay').classList.remove('open');
+  renderAll(); showToast('Asistente quitado');
+});
+
+window.openLote = function(capId){
+  const c = allCaps.find(x=>x.id===capId);
+  document.getElementById('loteCapId').value = capId;
+  document.getElementById('loteFecha').value = hoyIso();
+  document.getElementById('loteEfResp').value = '';
+  document.getElementById('loteEfMetodo').value = METODOS[0];
+  const ya = new Set(detalleFor(capId).map(d=>normalizeName(d.personal)));
+  const grupos = {};
+  activos().forEach(p=>{ (grupos[sectorDe(p)] = grupos[sectorDe(p)]||[]).push(p); });
+  const html = Object.keys(grupos).sort().map((s,gi)=>`
+    <div class="grp"><span>${esc(s)}</span><a class="muted" style="cursor:pointer; text-decoration:underline;" onclick="toggleGrupo(${gi})">tildar / destildar</a></div>
+    ${grupos[s].sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(p=>{
+      const dentro = ya.has(normalizeName(p.nombre));
+      const pre = !dentro && c && c.sector && (c.sector==='Todos' || c.sector.split('/').map(x=>x.trim()).some(x=>s.toLowerCase().indexOf(x.toLowerCase())>=0));
+      return `<label><input type="checkbox" class="lote-chk g${gi}" value="${esc(p.nombre)}" ${dentro?'disabled':''} ${pre?'checked':''}> ${esc(p.nombre)} <span class="muted">· ${esc(p.puesto)}${dentro?' (ya cargado)':''}</span></label>`;
+    }).join('')}`).join('');
+  document.getElementById('loteChecklist').innerHTML = html;
+  updLoteCount();
+  document.getElementById('loteOverlay').classList.add('open');
+};
+window.toggleGrupo = function(gi){
+  const chks = [...document.querySelectorAll('.lote-chk.g'+gi+':not(:disabled)')];
+  const all = chks.every(c=>c.checked); chks.forEach(c=>c.checked=!all); updLoteCount();
+};
+function updLoteCount(){ document.getElementById('loteCount').textContent = document.querySelectorAll('.lote-chk:checked').length + ' seleccionados'; }
+document.getElementById('loteChecklist').addEventListener('change', updLoteCount);
+document.getElementById('loteGuardar').addEventListener('click', async ()=>{
+  const capId = document.getElementById('loteCapId').value;
+  const nombres = [...document.querySelectorAll('.lote-chk:checked')].map(c=>c.value);
+  if (!nombres.length){ alert('Tildá al menos una persona.'); return; }
+  const fecha = document.getElementById('loteFecha').value, resp = document.getElementById('loteEfResp').value, met = document.getElementById('loteEfMetodo').value;
+  const t = Date.now();
+  nombres.forEach((n,i)=> allDetalle.push({id:'det'+t+'_'+i, cap_id:capId, anio:currentYear, personal:n, asistencia:'SI', fecha, ef_responsable:resp, ef_metodo:met, ef_fecha:fecha, ef_resultado:'', ef_obs:''}));
+  await saveDet();
+  const c = allCaps.find(x=>x.id===capId);
+  await saveHistorial('Asistentes en lote', c?c.actividad:capId, `${nombres.length} asistentes cargados`);
+  document.getElementById('loteOverlay').classList.remove('open');
+  expandedCapId = capId; renderAll(); showToast(`${nombres.length} asistentes cargados`);
+});
+
+/* ---------------- DESEMPEÑO ---------------- */
+function evalCurrentYear(){ return allEval.filter(e=>String(e.anio)===String(currentYear)); }
+function resultadoDe(prom){ return prom>=4.5 ? 'Apto destacado' : prom>=3.5 ? 'Apto' : prom>=2.5 ? 'Con observaciones' : 'No apto'; }
+function badgeResultado(r){
+  const cls = (r==='Apto destacado'||r==='Apto') ? 'badge-verde' : r==='Con observaciones' ? 'badge-amarillo' : r==='No apto' ? 'badge-rojo' : 'badge-gris';
+  return `<span class="badge ${cls}">${esc(r||'—')}</span>`;
+}
+function renderEval(){
+  const fPer = document.getElementById('filterPeriodo').value;
+  const fSec = document.getElementById('filterSectorEval').value;
+  const evs = evalCurrentYear();
+  const act = activos();
+  const per = ['1° semestre','2° semestre'].map(pp=>{
+    const n = act.filter(p=> evs.some(e=>e.periodo===pp && namesMatch(e.personal,p.nombre))).length;
+    return {pp, n};
+  });
+  const proms = evs.map(e=>Number(e.promedio)).filter(x=>!isNaN(x));
+  document.getElementById('evalCards').innerHTML = `
+    ${per.map(x=>`<div class="card ${x.n<act.length?'aviso':''}"><div class="card-label">Evaluados ${x.pp} ${currentYear}</div><div class="card-value">${x.n} / ${act.length}</div><div class="card-sub">${act.length?Math.round(x.n/act.length*100):0}% del personal activo</div></div>`).join('')}
+    <div class="card"><div class="card-label">Promedio general ${currentYear}</div><div class="card-value">${proms.length?(proms.reduce((a,b)=>a+b,0)/proms.length).toFixed(2):'—'}</div><div class="card-sub">sobre 5</div></div>
+    <div class="card alerta"><div class="card-label">Con observaciones / No apto</div><div class="card-value">${evs.filter(e=>e.resultado==='Con observaciones'||e.resultado==='No apto').length}</div></div>`;
+  const rows = evs.filter(e=> (!fPer || e.periodo===fPer) && (!fSec || (()=>{ const p = personal.find(x=>namesMatch(x.nombre,e.personal)); return p && sectorDe(p)===fSec; })()))
+    .sort((a,b)=> String(a.periodo).localeCompare(String(b.periodo)) || String(a.personal).localeCompare(String(b.personal)));
+  const tbody = document.getElementById('evalTableBody'), empty = document.getElementById('evalEmpty');
+  if (!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = rows.map(e=>`<tr>
+    <td><b>${esc(e.personal)}</b></td><td>${esc(e.puesto||'')}</td><td>${esc(e.periodo||'')}</td>
+    <td>${esc(e.puntaje_total)}/100</td><td>${esc(e.promedio)}</td><td>${badgeResultado(e.resultado)}</td>
+    <td>${esc(e.evaluador||'')}</td><td>${formatFecha(e.fecha)}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="openEvalModal('${e.id}')">Ver / Editar</button></td>
+  </tr>`).join('');
+}
+['filterPeriodo','filterSectorEval'].forEach(id=>document.getElementById(id).addEventListener('change', renderEval));
+
+function renderCriteriosGrid(scores){
+  const areas = {};
+  CRITERIOS.forEach(([area,item])=>{ (areas[area]=areas[area]||[]).push(item); });
+  let html = '';
+  Object.keys(areas).forEach(area=>{
+    html += `<div style="margin-top:12px;"><b style="font-size:12.5px; color:var(--prim-osc);">${esc(area)}</b></div>`;
+    areas[area].forEach(item=>{
+      const val = scores[item] || '';
+      html += `<div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--gris-200);">
+        <span style="font-size:12.5px;">${esc(item)}</span>
+        <select class="ev-crit" data-item="${esc(item)}" style="width:70px;" onchange="recalcEval()">
+          <option value="">-</option>${[1,2,3,4,5].map(n=>`<option value="${n}" ${val==n?'selected':''}>${n}</option>`).join('')}
+        </select></div>`;
+    });
+  });
+  document.getElementById('evCriteriosWrap').innerHTML = html;
+}
+window.recalcEval = function(){
+  let total = 0, n = 0;
+  document.querySelectorAll('.ev-crit').forEach(s=>{ if (s.value){ total += Number(s.value); n++; } });
+  const prom = n ? Math.round((total/n)*100)/100 : 0;
+  document.getElementById('evTotal').value = n ? `${total}/100 (${n}/20 completados)` : '';
+  document.getElementById('evResultado').value = n ? `${prom} — ${resultadoDe(prom)}` : '';
+};
+function mostrarIndicadores(){
+  const p = personal.find(x=>x.nombre===document.getElementById('evPersonal').value);
+  const pf = p && perfilDe(p.puesto);
+  const box = document.getElementById('evIndicadores');
+  if (pf && String(pf.indicadores||'').trim()){ box.style.display='block'; box.innerHTML = `<b>Indicadores del perfil (${esc(pf.puesto)}):</b><div class="pre" style="margin-top:4px;">${esc(pf.indicadores)}</div>`; }
+  else box.style.display='none';
+}
+document.getElementById('evPersonal').addEventListener('change', mostrarIndicadores);
+document.getElementById('btnNuevaEval').addEventListener('click', ()=> openEvalModal());
+window.openEvalModal = function(id){
+  const e = id ? allEval.find(x=>x.id===id) : null;
+  document.getElementById('evalModalTitle').textContent = e ? 'Editar evaluación de desempeño' : 'Nueva evaluación de desempeño';
+  document.getElementById('evId').value = e ? e.id : '';
+  renderPersonalSelectActivo(document.getElementById('evPersonal'), e && e.personal);
+  if (e) document.getElementById('evPersonal').value = e.personal;
+  document.getElementById('evPeriodo').value = e ? e.periodo : (new Date().getMonth()<6 ? '1° semestre' : '2° semestre');
+  document.getElementById('evFecha').value = e ? isoFecha(e.fecha) : hoyIso();
+  document.getElementById('evEvaluador').value = e ? e.evaluador : '';
+  document.getElementById('evObs').value = e ? e.observaciones : '';
+  let scores = {}; try{ scores = e && e.criterios ? JSON.parse(e.criterios) : {}; }catch(_){}
+  renderCriteriosGrid(scores); recalcEval(); mostrarIndicadores();
+  document.getElementById('evalOverlay').classList.add('open');
+};
+document.getElementById('evGuardar').addEventListener('click', async ()=>{
+  const id = document.getElementById('evId').value;
+  const scores = {}; let total=0, n=0;
+  document.querySelectorAll('.ev-crit').forEach(s=>{ if (s.value){ scores[s.dataset.item]=Number(s.value); total+=Number(s.value); n++; } });
+  if (!n){ alert('Completá al menos un criterio.'); return; }
+  if (!document.getElementById('evEvaluador').value.trim()){ alert('Indicá quién evalúa (encargado de sector).'); return; }
+  const promedio = Math.round((total/n)*100)/100;
+  const nombre = document.getElementById('evPersonal').value;
+  const p = personal.find(x=>x.nombre===nombre);
+  const periodo = document.getElementById('evPeriodo').value;
+  if (!id && allEval.some(e=>String(e.anio)===String(currentYear) && e.periodo===periodo && e.personal===nombre)){
+    if (!confirm(`${nombre} ya tiene una evaluación del ${periodo} ${currentYear}. ¿Cargar otra igual?`)) return;
+  }
+  const data = { anio: currentYear, periodo, personal: nombre, puesto: p ? p.puesto : '',
+    puntaje_total: total, promedio, resultado: resultadoDe(promedio),
+    evaluador: document.getElementById('evEvaluador').value, fecha: document.getElementById('evFecha').value,
+    observaciones: document.getElementById('evObs').value, criterios: JSON.stringify(scores) };
+  if (id) Object.assign(allEval.find(x=>x.id===id), data);
+  else allEval.push({id:'ev'+Date.now(), ...data});
+  await writeSheet('EVAL_DESEMPENO_'+currentYear, H_EVAL, evalCurrentYear());
+  await saveHistorial('Evaluación de desempeño', nombre, `${periodo} ${currentYear}: ${data.resultado} (${promedio}/5)`);
+  document.getElementById('evalOverlay').classList.remove('open');
+  renderAll(); showToast('Evaluación guardada');
+});
+
+/* ---------------- FICHA ---------------- */
+window.verFicha = function(id){ goTab('ficha'); document.getElementById('fichaSelect').value=id; renderFicha(); };
+function renderFichaSelect(){
+  const sel = document.getElementById('fichaSelect'); const cur = sel.value;
+  sel.innerHTML = personal.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre)).map(p=>`<option value="${p.id}">${esc(p.nombre)}${p.estado==='Baja'?' (baja)':''}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+document.getElementById('fichaSelect').addEventListener('change', renderFicha);
+let fichaChartD, fichaChartC;
+function renderFicha(){
+  renderFichaSelect();
+  const id = document.getElementById('fichaSelect').value;
+  const p = personal.find(x=>x.id===id);
+  const cont = document.getElementById('fichaContent');
+  if (!p){ cont.innerHTML = '<div class="empty">Cargá personal primero.</div>'; return; }
+  const ind = estadoInduccion(p), car = estadoCarnet(p);
+  const registros = allDetalle.filter(d=>namesMatch(d.personal, p.nombre))
+    .map(d=>{ const cap = allCaps.find(c=>c.id===d.cap_id) || {}; return {...d, actividad:cap.actividad, objetivo:cap.objetivo}; })
+    .sort((a,b)=> String(b.anio||'').localeCompare(String(a.anio||'')) || String(b.fecha||'').localeCompare(String(a.fecha||'')));
+  const evals = allEval.filter(e=>namesMatch(e.personal, p.nombre)).sort((a,b)=> String(b.anio).localeCompare(String(a.anio)) || String(b.periodo).localeCompare(String(a.periodo)));
+  const hist = historial.filter(h=>namesMatch(h.entidad, p.nombre)).slice(-8).reverse();
+  cont.innerHTML = `
+    <div class="cards" style="margin-bottom:18px;">
+      <div class="card"><div class="card-label">Puesto</div><div class="card-value" style="font-size:15px;">${esc(p.puesto)}</div><div class="card-sub">${esc(sectorDe(p))}</div></div>
+      <div class="card"><div class="card-label">Estado</div><div class="card-value" style="font-size:15px;">${esc(p.estado)}</div>${p.estado==='Baja'?`<div class="card-sub">${formatFecha(p.fecha_baja)} — ${esc(p.motivo_baja||'')}</div>`:''}</div>
+      <div class="card"><div class="card-label">Fecha de ingreso</div><div class="card-value" style="font-size:15px;">${formatFecha(p.fecha_ingreso)||'—'}</div></div>
+      <div class="card"><div class="card-label">Inducción</div><div class="card-value" style="font-size:14px;"><span class="badge ${ind.cls}">${ind.label}</span></div></div>
+      <div class="card ${car.key==='Vencido'?'alerta':car.key==='Por vencer'?'aviso':''}"><div class="card-label">Carnet manipulación</div><div class="card-value" style="font-size:14px;"><span class="badge ${car.cls}">${car.label}</span></div><div class="card-sub">${p.vto_carnet?'Vence '+formatFecha(p.vto_carnet):'Sin fecha cargada'}</div></div>
+    </div>
+    <div class="panel-title">Evolución</div>
+    <div class="chart-grid" style="margin-bottom:20px;">
+      <div class="panel" style="box-shadow:none; border:1px solid var(--gris-200); margin-bottom:0;">
+        <div class="panel-title" style="font-size:12.5px;">Promedio de desempeño por semestre (sobre 5)</div>
+        <div class="chart-box" style="height:200px;"><canvas id="fichaChartDesempeno"></canvas></div>
+      </div>
+      <div class="panel" style="box-shadow:none; border:1px solid var(--gris-200); margin-bottom:0;">
+        <div class="panel-title" style="font-size:12.5px;">Capacitaciones y eficacia por año</div>
+        <div class="chart-box" style="height:200px;"><canvas id="fichaChartCaps"></canvas></div>
+      </div>
+    </div>
+    <div class="panel-title">Evaluaciones de desempeño (${evals.length})</div>
+    <div class="table-wrap" style="margin-bottom:18px;"><table>
+      <thead><tr><th>Año</th><th>Período</th><th>Puntaje</th><th>Promedio</th><th>Resultado</th><th>Evaluador</th><th>Fecha</th></tr></thead>
+      <tbody>${evals.map(e=>`<tr><td>${esc(e.anio)}</td><td>${esc(e.periodo||'')}</td><td>${esc(e.puntaje_total)}/100</td><td>${esc(e.promedio)}</td><td>${badgeResultado(e.resultado)}</td><td>${esc(e.evaluador||'')}</td><td>${formatFecha(e.fecha)}</td></tr>`).join('') || '<tr><td colspan="7" class="hint">Sin evaluaciones registradas.</td></tr>'}</tbody>
+    </table></div>
+    <div class="panel-title">Capacitaciones recibidas (${registros.length})</div>
+    <div class="table-wrap" style="margin-bottom:18px;"><table>
+      <thead><tr><th>Año</th><th>Actividad</th><th>Objetivo</th><th>Fecha</th><th>Método eficacia</th><th>Resultado</th><th>Observaciones</th></tr></thead>
+      <tbody>${registros.map(r=>`<tr><td>${esc(r.anio)}</td><td>${esc(r.actividad||'')}</td><td><span class="badge badge-gris">${esc(r.objetivo||'')}</span></td><td>${formatFecha(r.fecha)}</td><td>${esc(r.ef_metodo||'')}</td><td>${badgeEficacia(r.ef_resultado)}</td><td>${esc(r.ef_obs||'')}</td></tr>`).join('') || '<tr><td colspan="7" class="hint">Sin capacitaciones registradas.</td></tr>'}</tbody>
+    </table></div>
+    ${hist.length?`<div class="panel-title">Últimos movimientos</div><div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th></tr></thead><tbody>${hist.map(h=>`<tr><td>${formatFecha(h.fecha)}</td><td>${esc(h.tipo)}</td><td>${esc(h.detalle)}</td></tr>`).join('')}</tbody></table></div>`:''}`;
+  const labelsD = evals.slice().reverse().map(e=>`${e.anio} ${String(e.periodo||'').replace(' semestre','S')}`);
+  if (fichaChartD) fichaChartD.destroy();
+  fichaChartD = new Chart(document.getElementById('fichaChartDesempeno'), {
+    type:'line',
+    data:{ labels: labelsD.length?labelsD:['Sin datos'], datasets:[{label:'Promedio', data: labelsD.length?evals.slice().reverse().map(e=>Number(e.promedio)):[null], borderColor:'#3E6B45', backgroundColor:'#A9C9A4', tension:.3, pointRadius:4}] },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{min:0, max:5}}}
+  });
+  const anios = [...new Set(registros.map(r=>String(r.anio)))].sort();
+  const cnt = f => anios.map(a=> registros.filter(r=>String(r.anio)===a && f(r)).length);
+  if (fichaChartC) fichaChartC.destroy();
+  fichaChartC = new Chart(document.getElementById('fichaChartCaps'), {
+    type:'bar',
+    data:{ labels: anios.length?anios:['Sin datos'], datasets:[
+      {label:'Eficaz', data:anios.length?cnt(r=>r.ef_resultado==='SI'):[0], backgroundColor:'#2E7D5B'},
+      {label:'No eficaz', data:anios.length?cnt(r=>r.ef_resultado==='NO'):[0], backgroundColor:'#B03A2E'},
+      {label:'Pendiente', data:anios.length?cnt(r=>r.ef_resultado!=='SI'&&r.ef_resultado!=='NO'):[0], backgroundColor:'#D9A441'},
+    ]},
+    options:{responsive:true, maintainAspectRatio:false, scales:{x:{stacked:true}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}}}
+  });
+}
+
+/* ---------------- RESUMEN ---------------- */
+let chartTipo, chartInduccion, chartCarnet, chartCarnetSector;
+function renderResumen(){
+  const act = activos();
+  const pend = act.filter(p=>estadoInduccion(p).key==='Pendiente');
+  const venc = act.filter(p=>estadoInduccion(p).key==='Vencida');
+  const cs = carnetStats(act);
+  const capsY = capsCurrentYear();
+  const detY = allDetalle.filter(d=>String(d.anio)===String(currentYear));
+  const eficaces = detY.filter(d=>d.ef_resultado==='SI').length;
+  const totalEval = detY.filter(d=>d.ef_resultado==='SI'||d.ef_resultado==='NO').length;
+  const pct = totalEval ? Math.round((eficaces/totalEval)*100) : 0;
+  const realizadas = capsY.filter(c=>c.estado==='Realizada').length;
+  const pfInc = perfiles.filter(p=>p.estado==='Activo' && perfilIncompleto(p)).length;
+
+  document.getElementById('resumenCards').innerHTML = `
+    <div class="card"><div class="card-label">Personal activo</div><div class="card-value">${act.length}</div><div class="card-sub">${sectores().length} sectores</div></div>
+    <div class="card ${cs.Vencido?'alerta':''}"><div class="card-label">Carnets vencidos</div><div class="card-value">${cs.Vencido}</div></div>
+    <div class="card ${cs['Por vencer']?'aviso':''}"><div class="card-label">Carnets por vencer</div><div class="card-value">${cs['Por vencer']}</div><div class="card-sub">próximos ${UMBRAL_CARNET_DIAS} días</div></div>
+    <div class="card neutro"><div class="card-label">Carnets sin dato</div><div class="card-value">${cs['Sin dato']}</div></div>
+    <div class="card ${venc.length?'alerta':''}"><div class="card-label">Inducción pend. / vencida</div><div class="card-value">${pend.length} / ${venc.length}</div></div>
+    <div class="card ${pfInc?'aviso':''}"><div class="card-label">Perfiles activos</div><div class="card-value">${perfiles.filter(p=>p.estado==='Activo').length}</div><div class="card-sub">${pfInc} a completar</div></div>
+    <div class="card"><div class="card-label">Capacitaciones ${currentYear}</div><div class="card-value">${realizadas} / ${capsY.length}</div><div class="card-sub">realizadas / programadas</div></div>
+    <div class="card"><div class="card-label">% Eficacia evaluada</div><div class="card-value">${pct}%</div><div class="card-sub">${totalEval} de ${detY.length} evaluadas</div></div>`;
+
+  const nVenc = cs.Vencido + cs['Por vencer'];
+  const nc = document.getElementById('navCarnetCount'); nc.textContent = nVenc; nc.style.display = nVenc ? 'inline-block' : 'none';
+
+  // carnets por sector
+  const secs = [...new Set(act.map(sectorDe))].sort();
+  const bySec = k => secs.map(s=> act.filter(p=>sectorDe(p)===s && estadoCarnet(p).key===k).length);
+  if (chartCarnetSector) chartCarnetSector.destroy();
+  chartCarnetSector = new Chart(document.getElementById('chartCarnetSector'), {
+    type:'bar',
+    data:{ labels: secs.length?secs:['Sin datos'], datasets:[
+      {label:'Vigente', data:bySec('Vigente'), backgroundColor:'#2E7D5B'},
+      {label:'Por vencer', data:bySec('Por vencer'), backgroundColor:'#D9A441'},
+      {label:'Vencido', data:bySec('Vencido'), backgroundColor:'#B03A2E'},
+      {label:'Sin dato', data:bySec('Sin dato'), backgroundColor:'#AEB6A8'},
+    ]},
+    options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', scales:{x:{stacked:true, beginAtZero:true, ticks:{precision:0}}, y:{stacked:true, ticks:{font:{size:10.5}}}}, plugins:{legend:{position:'bottom'}}}
+  });
+  if (chartCarnet) chartCarnet.destroy();
+  chartCarnet = new Chart(document.getElementById('chartCarnet'), {
+    type:'doughnut',
+    data:{ labels:['Vigente','Por vencer','Vencido','Sin dato'], datasets:[{data:[cs.Vigente, cs['Por vencer'], cs.Vencido, cs['Sin dato']], backgroundColor:['#2E7D5B','#D9A441','#B03A2E','#AEB6A8']}] },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+  });
+
+  const objetivos = [...new Set(capsY.map(c=>c.objetivo).filter(Boolean))];
+  const ser = f => objetivos.map(o=>{ const ids = capsY.filter(c=>c.objetivo===o).map(c=>c.id); return detY.filter(d=>ids.includes(d.cap_id) && f(d)).length; });
+  if (chartTipo) chartTipo.destroy();
+  chartTipo = new Chart(document.getElementById('chartTipo'), {
+    type:'bar',
+    data:{ labels: objetivos.length?objetivos:['Sin datos'], datasets:[
+      {label:'Eficaz', data:objetivos.length?ser(d=>d.ef_resultado==='SI'):[0], backgroundColor:'#2E7D5B'},
+      {label:'No eficaz', data:objetivos.length?ser(d=>d.ef_resultado==='NO'):[0], backgroundColor:'#B03A2E'},
+      {label:'Pendiente', data:objetivos.length?ser(d=>d.ef_resultado!=='SI'&&d.ef_resultado!=='NO'):[0], backgroundColor:'#D9A441'},
+    ]},
+    options:{responsive:true, maintainAspectRatio:false, scales:{x:{stacked:true, ticks:{font:{size:9}}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}}}, plugins:{legend:{position:'bottom'}}}
+  });
+  const comp = act.filter(p=>estadoInduccion(p).key==='Completa').length, na = act.filter(p=>estadoInduccion(p).key==='No aplica').length;
+  if (chartInduccion) chartInduccion.destroy();
+  chartInduccion = new Chart(document.getElementById('chartInduccion'), {
+    type:'doughnut',
+    data:{ labels:['Completa','Pendiente','Vencida','Sin fecha de ingreso'], datasets:[{data:[comp, pend.length, venc.length, na], backgroundColor:['#2E7D5B','#D9A441','#B03A2E','#AEB6A8']}] },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
+  });
+
+  // alertas
+  const al = [];
+  act.filter(p=>estadoCarnet(p).key==='Vencido').forEach(p=> al.push(['badge-rojo','Carnet vencido', `${p.nombre} (${p.puesto}) — venció el ${formatFecha(p.vto_carnet)}`, `openCarnet('${p.id}')`]));
+  act.filter(p=>estadoCarnet(p).key==='Por vencer').forEach(p=> al.push(['badge-amarillo','Carnet por vencer', `${p.nombre} (${p.puesto}) — vence el ${formatFecha(p.vto_carnet)} (${estadoCarnet(p).dias} días)`, `openCarnet('${p.id}')`]));
+  act.filter(p=>estadoCarnet(p).key==='Sin dato' && reqCarnet(p)==='Obligatorio').forEach(p=> al.push(['badge-gris','Carnet sin dato', `${p.nombre} (${p.puesto}) — el puesto lo exige y no hay vencimiento cargado`, `openCarnet('${p.id}')`]));
+  venc.forEach(p=> al.push(['badge-rojo','Inducción vencida', `${p.nombre} — ingresó el ${formatFecha(p.fecha_ingreso)}`, `goTab('nomina')`]));
+  const sinFecha = act.filter(p=>!p.fecha_ingreso).length;
+  if (sinFecha) al.push(['badge-gris','Fechas de ingreso', `${sinFecha} personas sin fecha de ingreso cargada (no se puede seguir la inducción)`, `goTab('nomina')`]);
+  if (pfInc) al.push(['badge-amarillo','Perfiles a completar', `${pfInc} perfiles de puesto sin misión o funciones`, `goTab('perfiles')`]);
+  document.getElementById('alertasList').innerHTML = al.length ? `<div class="table-wrap" style="max-height:300px;"><table><tbody>${al.map(a=>`<tr style="cursor:pointer;" onclick="${a[3]}"><td style="width:170px;"><span class="badge ${a[0]}">${a[1]}</span></td><td>${esc(a[2])}</td></tr>`).join('')}</tbody></table></div>` : '<div class="hint">Sin alertas. 👌</div>';
+}
+
+function renderAll(){
+  fillSectorSelect('filterSectorPersonal'); fillSectorSelect('filterSectorCarnet'); fillSectorSelect('filterSectorEval');
+  renderSectoresDatalist();
+  renderFiltersCap();
+  renderNomina(); renderPerfiles(); renderCarnets(); renderCapTable(); renderEval(); renderResumen();
+  if (document.getElementById('tab-ficha').style.display!=='none') renderFicha();
+}
+
+(async function init(){
+  await loadYears();
+  if (!years.includes(currentYear)) currentYear = years[years.length-1];
+  renderYearSelect();
+  await loadAll();
+  renderAll();
+})();
+</script>
+</body>
+</html>
