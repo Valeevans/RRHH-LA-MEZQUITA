@@ -149,7 +149,7 @@
       <p><b>Modo demo.</b> El tablero todavía no está conectado a Google Sheets: estás viendo los datos cargados de fábrica y los cambios no se guardan. Pegá la URL del Apps Script en <code>SHEET_API_URL</code> para trabajar en serio.</p>
     </div>
     <div class="banner" id="importBanner" style="display:none;">
-      <p><b>La planilla está vacía.</b> Tengo listos los datos de La Mezquita: 39 personas del registro de carnets (con su vencimiento), 11 perfiles de puesto (matriz + organigrama) y el plan de capacitación 2026 del P-RH-01. Un clic los sube a la Google Sheet.</p>
+      <p><b>La planilla está vacía.</b> Tengo listos los datos de La Mezquita: 39 personas del registro de carnets, 11 perfiles de puesto (matriz + organigrama) y el plan de capacitación 2026 del P-RH-01. Un clic los sube a la Google Sheet.</p>
       <button class="btn btn-primary" id="btnImportar">Importar datos iniciales</button>
     </div>
 
@@ -235,13 +235,13 @@
           <div class="filters">
             <label>Sector</label><select id="filterSectorCarnet"></select>
             <label>Estado</label>
-            <select id="filterEstadoCarnet"><option value="">Todos</option><option>Vencido</option><option>Por vencer</option><option>Vigente</option><option>Sin dato</option></select>
+            <select id="filterEstadoCarnet"><option value="">Todos</option><option>Vigente</option><option>Sin dato</option></select>
           </div>
-          <div class="hint">"Por vencer" = vence dentro de los próximos <b id="umbralTxt">60</b> días (calculado contra la fecha de hoy).</div>
+          <div class="hint">Desde el Decreto 697/2026 (B.O. 03/08/2026) el carnet de manipulador <b>no tiene vencimiento</b> y vale en todo el país; los emitidos antes siguen vigentes aunque tengan una fecha impresa. "Sin dato" = no hay carnet registrado para esa persona.</div>
         </div>
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Apellido y nombre</th><th>Puesto</th><th>Sector</th><th>Requisito</th><th>Vencimiento</th><th>Días para vencer</th><th>Estado</th><th>Obs.</th><th></th></tr></thead>
+            <thead><tr><th>Apellido y nombre</th><th>Puesto</th><th>Sector</th><th>Requisito</th><th>Fecha del carnet</th><th>Estado</th><th>Obs.</th><th></th></tr></thead>
             <tbody id="carnetTableBody"></tbody>
           </table>
         </div>
@@ -325,7 +325,7 @@
         </div>
       </div>
       <div class="form-row">
-        <div class="form-group"><label>Vencimiento carnet de manipulación</label><input type="date" id="pVtoCarnet"></div>
+        <div class="form-group"><label>Fecha del carnet de manipulación (emisión)</label><input type="date" id="pVtoCarnet"></div>
         <div class="form-group"><label>Observaciones carnet</label><input type="text" id="pObsCarnet"></div>
       </div>
     </div>
@@ -340,10 +340,10 @@
     <div class="modal-body">
       <input type="hidden" id="cId">
       <div class="form-row">
-        <div class="form-group"><label>Nuevo vencimiento</label><input type="date" id="cVto"></div>
+        <div class="form-group"><label>Fecha del carnet (emisión)</label><input type="date" id="cVto"></div>
         <div class="form-group"><label>Observaciones</label><input type="text" id="cObs" placeholder="Ej: turno de renovación pedido"></div>
       </div>
-      <div class="hint">Al renovar, cargá la fecha de vencimiento del carnet nuevo. Queda registrado en el historial.</div>
+      <div class="hint">El carnet no vence (Decreto 697/2026): alcanza con registrar que la persona lo tiene. Cargá la fecha de emisión (o la que figure en el carnet, si es uno emitido antes del decreto). Queda registrado en el historial.</div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" data-close="carnetOverlay">Cancelar</button><button class="btn btn-primary" id="cGuardar">Guardar</button></div>
   </div>
@@ -509,7 +509,8 @@
    ============================================================ */
 const SHEET_API_URL = "https://script.google.com/macros/s/AKfycbyNmDOFyevFYr0pyccxCTbNy_R_xZxAuNT-KV-559-PNvN2_sDf1WtHs2_NDOAQTwDa/exec";
 
-const UMBRAL_CARNET_DIAS = 60;
+// Carnet de manipulador: sin vencimiento desde el Decreto 697/2026 (B.O. 03/08/2026).
+// La columna vto_carnet de la planilla se conserva y ahora guarda la fecha del carnet (emisión o la impresa en carnets anteriores).
 
 const H_PERSONAL = ["id","nombre","puesto","ocupacion_original","estado","fecha_ingreso","fecha_baja","motivo_baja","plazo_induccion_dias","estado_induccion","fecha_eval_induccion","resultado_induccion","vto_carnet","obs_carnet"];
 const H_PERFILES = ["id","puesto","sector","reporta_a","mision","funciones","equipos","documentos","indicadores","competencias","carnet_req","estado"];
@@ -676,7 +677,7 @@ const TITLES = {
   resumen:["Resumen","Estado general de RRHH — La Mezquita Restaurante & Bar"],
   nomina:["Nómina","Alta, baja, inducción y carnet de cada colaborador"],
   perfiles:["Perfiles de puesto","Anexo I del P-RH-01 — misión, funciones, indicadores y competencias"],
-  carnets:["Carnets de manipulación de alimentos","Registro y control de vencimientos — requisito BPM"],
+  carnets:["Carnets de manipulación de alimentos","Registro de carnets — requisito BPM (sin vencimiento, Decreto 697/2026)"],
   capacitaciones:["Capacitaciones","Plan y registro — eficacia individual por asistente"],
   desempeno:["Desempeño","Evaluación semestral por competencias (encargado de sector)"],
   ficha:["Ficha de empleado","Historial completo por persona: carnet, capacitaciones y desempeño"]
@@ -727,11 +728,9 @@ function estadoInduccion(p){
   return {key:'Pendiente', label:`Pendiente (${restantes}d)`, cls:'badge-amarillo'};
 }
 function estadoCarnet(p){
-  if (!isoFecha(p.vto_carnet)) return {key:'Sin dato', label:'Sin dato', cls:'badge-gris', dias:null};
-  const d = diasHasta(p.vto_carnet);
-  if (d < 0) return {key:'Vencido', label:'Vencido', cls:'badge-rojo', dias:d};
-  if (d <= UMBRAL_CARNET_DIAS) return {key:'Por vencer', label:'Por vencer', cls:'badge-amarillo', dias:d};
-  return {key:'Vigente', label:'Vigente', cls:'badge-verde', dias:d};
+  // Sin vencimiento (Decreto 697/2026): si hay carnet registrado, está vigente.
+  if (!isoFecha(p.vto_carnet)) return {key:'Sin dato', label:'Sin dato', cls:'badge-gris'};
+  return {key:'Vigente', label:'Vigente', cls:'badge-verde'};
 }
 function reqCarnet(p){ const pf = perfilDe(p.puesto); return pf ? (pf.carnet_req||'A definir') : 'A definir'; }
 
@@ -963,41 +962,36 @@ window.reactivarPerfil = async function(id){
 
 /* ---------------- CARNETS ---------------- */
 function carnetStats(list){
-  const s = {Vigente:0,'Por vencer':0,Vencido:0,'Sin dato':0};
+  const s = {Vigente:0,'Sin dato':0};
   list.forEach(p=> s[estadoCarnet(p).key]++);
   return s;
 }
 function renderCarnets(){
   const act = activos();
   const s = carnetStats(act);
-  document.getElementById('umbralTxt').textContent = UMBRAL_CARNET_DIAS;
   document.getElementById('carnetCards').innerHTML = `
     <div class="card"><div class="card-label">Personal activo</div><div class="card-value">${act.length}</div></div>
     <div class="card"><div class="card-label">Vigentes</div><div class="card-value">${s.Vigente}</div><div class="card-sub">${act.length?Math.round(s.Vigente/act.length*100):0}% del personal</div></div>
-    <div class="card aviso"><div class="card-label">Por vencer (≤${UMBRAL_CARNET_DIAS} días)</div><div class="card-value">${s['Por vencer']}</div></div>
-    <div class="card alerta"><div class="card-label">Vencidos</div><div class="card-value">${s.Vencido}</div></div>
-    <div class="card neutro"><div class="card-label">Sin dato</div><div class="card-value">${s['Sin dato']}</div><div class="card-sub">falta cargar vencimiento</div></div>`;
+    <div class="card ${s['Sin dato']?'aviso':''}"><div class="card-label">Sin dato</div><div class="card-value">${s['Sin dato']}</div><div class="card-sub">falta registrar el carnet</div></div>`;
   const fSec = document.getElementById('filterSectorCarnet').value;
   const fEst = document.getElementById('filterEstadoCarnet').value;
-  const orden = {'Vencido':0,'Por vencer':1,'Sin dato':2,'Vigente':3};
+  const orden = {'Sin dato':0,'Vigente':1};
   const rows = act.filter(p=> (!fSec || sectorDe(p)===fSec) && (!fEst || estadoCarnet(p).key===fEst))
-    .sort((a,b)=>{ const ea=estadoCarnet(a), eb=estadoCarnet(b); return (orden[ea.key]-orden[eb.key]) || ((ea.dias??99999)-(eb.dias??99999)) || a.nombre.localeCompare(b.nombre); });
+    .sort((a,b)=>{ const ea=estadoCarnet(a), eb=estadoCarnet(b); return (orden[ea.key]-orden[eb.key]) || a.nombre.localeCompare(b.nombre); });
   const tbody = document.getElementById('carnetTableBody'), empty = document.getElementById('carnetEmpty');
   if (!rows.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
   tbody.innerHTML = rows.map(p=>{
     const c = estadoCarnet(p), req = reqCarnet(p);
-    const dias = c.dias==null ? '—' : (c.dias<0 ? `<b style="color:var(--rojo)">vencido hace ${Math.abs(c.dias)}d</b>` : `${c.dias}`);
     return `<tr>
       <td><b>${esc(p.nombre)}</b></td>
       <td>${esc(p.puesto)}</td>
       <td>${esc(sectorDe(p))}</td>
       <td><span class="muted">${esc(req)}</span></td>
       <td>${formatFecha(p.vto_carnet)||'—'}</td>
-      <td>${dias}</td>
       <td><span class="badge ${c.cls}">${c.label}</span></td>
       <td><span class="muted">${esc(p.obs_carnet||'')}</span></td>
-      <td><button class="btn btn-ghost btn-sm" onclick="openCarnet('${p.id}')">${c.key==='Sin dato'?'Cargar vto.':'Renovar / editar'}</button></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="openCarnet('${p.id}')">${c.key==='Sin dato'?'Registrar carnet':'Editar'}</button></td>
     </tr>`;
   }).join('');
 }
@@ -1015,7 +1009,7 @@ document.getElementById('cGuardar').addEventListener('click', async ()=>{
   const antes = p.vto_carnet;
   p.vto_carnet = document.getElementById('cVto').value; p.obs_carnet = document.getElementById('cObs').value;
   await writeSheet('PERSONAL', H_PERSONAL, personal);
-  await saveHistorial('Carnet', p.nombre, `Vencimiento ${formatFecha(antes)||'sin dato'} → ${formatFecha(p.vto_carnet)||'sin dato'}`);
+  await saveHistorial('Carnet', p.nombre, `Fecha del carnet ${formatFecha(antes)||'sin dato'} → ${formatFecha(p.vto_carnet)||'sin dato'}`);
   document.getElementById('carnetOverlay').classList.remove('open');
   renderAll(); showToast('Carnet actualizado');
 });
@@ -1381,7 +1375,7 @@ function renderFicha(){
       <div class="card"><div class="card-label">Estado</div><div class="card-value" style="font-size:15px;">${esc(p.estado)}</div>${p.estado==='Baja'?`<div class="card-sub">${formatFecha(p.fecha_baja)} — ${esc(p.motivo_baja||'')}</div>`:''}</div>
       <div class="card"><div class="card-label">Fecha de ingreso</div><div class="card-value" style="font-size:15px;">${formatFecha(p.fecha_ingreso)||'—'}</div></div>
       <div class="card"><div class="card-label">Inducción</div><div class="card-value" style="font-size:14px;"><span class="badge ${ind.cls}">${ind.label}</span></div></div>
-      <div class="card ${car.key==='Vencido'?'alerta':car.key==='Por vencer'?'aviso':''}"><div class="card-label">Carnet manipulación</div><div class="card-value" style="font-size:14px;"><span class="badge ${car.cls}">${car.label}</span></div><div class="card-sub">${p.vto_carnet?'Vence '+formatFecha(p.vto_carnet):'Sin fecha cargada'}</div></div>
+      <div class="card ${car.key==='Sin dato'?'aviso':''}"><div class="card-label">Carnet manipulación</div><div class="card-value" style="font-size:14px;"><span class="badge ${car.cls}">${car.label}</span></div><div class="card-sub">${p.vto_carnet?'Fecha del carnet '+formatFecha(p.vto_carnet)+' · sin vencimiento':'Sin carnet registrado'}</div></div>
     </div>
     <div class="panel-title">Evolución</div>
     <div class="chart-grid" style="margin-bottom:20px;">
@@ -1443,16 +1437,15 @@ function renderResumen(){
 
   document.getElementById('resumenCards').innerHTML = `
     <div class="card"><div class="card-label">Personal activo</div><div class="card-value">${act.length}</div><div class="card-sub">${sectores().length} sectores</div></div>
-    <div class="card ${cs.Vencido?'alerta':''}"><div class="card-label">Carnets vencidos</div><div class="card-value">${cs.Vencido}</div></div>
-    <div class="card ${cs['Por vencer']?'aviso':''}"><div class="card-label">Carnets por vencer</div><div class="card-value">${cs['Por vencer']}</div><div class="card-sub">próximos ${UMBRAL_CARNET_DIAS} días</div></div>
-    <div class="card neutro"><div class="card-label">Carnets sin dato</div><div class="card-value">${cs['Sin dato']}</div></div>
+    <div class="card"><div class="card-label">Carnets registrados</div><div class="card-value">${cs.Vigente}</div><div class="card-sub">sin vencimiento (Dto. 697/2026)</div></div>
+    <div class="card ${cs['Sin dato']?'aviso':''}"><div class="card-label">Carnets sin dato</div><div class="card-value">${cs['Sin dato']}</div></div>
     <div class="card ${venc.length?'alerta':''}"><div class="card-label">Inducción pend. / vencida</div><div class="card-value">${pend.length} / ${venc.length}</div></div>
     <div class="card ${pfInc?'aviso':''}"><div class="card-label">Perfiles activos</div><div class="card-value">${perfiles.filter(p=>p.estado==='Activo').length}</div><div class="card-sub">${pfInc} a completar</div></div>
     <div class="card"><div class="card-label">Capacitaciones ${currentYear}</div><div class="card-value">${realizadas} / ${capsY.length}</div><div class="card-sub">realizadas / programadas</div></div>
     <div class="card"><div class="card-label">% Eficacia evaluada</div><div class="card-value">${pct}%</div><div class="card-sub">${totalEval} de ${detY.length} evaluadas</div></div>`;
 
-  const nVenc = cs.Vencido + cs['Por vencer'];
-  const nc = document.getElementById('navCarnetCount'); nc.textContent = nVenc; nc.style.display = nVenc ? 'inline-block' : 'none';
+  const nFalta = act.filter(p=>estadoCarnet(p).key==='Sin dato' && reqCarnet(p)==='Obligatorio').length;
+  const nc = document.getElementById('navCarnetCount'); nc.textContent = nFalta; nc.style.display = nFalta ? 'inline-block' : 'none';
 
   // carnets por sector
   const secs = [...new Set(act.map(sectorDe))].sort();
@@ -1462,8 +1455,6 @@ function renderResumen(){
     type:'bar',
     data:{ labels: secs.length?secs:['Sin datos'], datasets:[
       {label:'Vigente', data:bySec('Vigente'), backgroundColor:'#2E7D5B'},
-      {label:'Por vencer', data:bySec('Por vencer'), backgroundColor:'#D9A441'},
-      {label:'Vencido', data:bySec('Vencido'), backgroundColor:'#B03A2E'},
       {label:'Sin dato', data:bySec('Sin dato'), backgroundColor:'#AEB6A8'},
     ]},
     options:{responsive:true, maintainAspectRatio:false, indexAxis:'y', scales:{x:{stacked:true, beginAtZero:true, ticks:{precision:0}}, y:{stacked:true, ticks:{font:{size:10.5}}}}, plugins:{legend:{position:'bottom'}}}
@@ -1471,7 +1462,7 @@ function renderResumen(){
   if (chartCarnet) chartCarnet.destroy();
   chartCarnet = new Chart(document.getElementById('chartCarnet'), {
     type:'doughnut',
-    data:{ labels:['Vigente','Por vencer','Vencido','Sin dato'], datasets:[{data:[cs.Vigente, cs['Por vencer'], cs.Vencido, cs['Sin dato']], backgroundColor:['#2E7D5B','#D9A441','#B03A2E','#AEB6A8']}] },
+    data:{ labels:['Vigente','Sin dato'], datasets:[{data:[cs.Vigente, cs['Sin dato']], backgroundColor:['#2E7D5B','#AEB6A8']}] },
     options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom'}}}
   });
 
@@ -1497,9 +1488,7 @@ function renderResumen(){
 
   // alertas
   const al = [];
-  act.filter(p=>estadoCarnet(p).key==='Vencido').forEach(p=> al.push(['badge-rojo','Carnet vencido', `${p.nombre} (${p.puesto}) — venció el ${formatFecha(p.vto_carnet)}`, `openCarnet('${p.id}')`]));
-  act.filter(p=>estadoCarnet(p).key==='Por vencer').forEach(p=> al.push(['badge-amarillo','Carnet por vencer', `${p.nombre} (${p.puesto}) — vence el ${formatFecha(p.vto_carnet)} (${estadoCarnet(p).dias} días)`, `openCarnet('${p.id}')`]));
-  act.filter(p=>estadoCarnet(p).key==='Sin dato' && reqCarnet(p)==='Obligatorio').forEach(p=> al.push(['badge-gris','Carnet sin dato', `${p.nombre} (${p.puesto}) — el puesto lo exige y no hay vencimiento cargado`, `openCarnet('${p.id}')`]));
+  act.filter(p=>estadoCarnet(p).key==='Sin dato' && reqCarnet(p)==='Obligatorio').forEach(p=> al.push(['badge-gris','Carnet sin dato', `${p.nombre} (${p.puesto}) — el puesto lo exige y no hay carnet registrado`, `openCarnet('${p.id}')`]));
   venc.forEach(p=> al.push(['badge-rojo','Inducción vencida', `${p.nombre} — ingresó el ${formatFecha(p.fecha_ingreso)}`, `goTab('nomina')`]));
   const sinFecha = act.filter(p=>!p.fecha_ingreso).length;
   if (sinFecha) al.push(['badge-gris','Fechas de ingreso', `${sinFecha} personas sin fecha de ingreso cargada (no se puede seguir la inducción)`, `goTab('nomina')`]);
